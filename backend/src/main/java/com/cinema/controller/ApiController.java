@@ -1,5 +1,6 @@
 package com.cinema.controller;
 
+import com.cinema.dto.Dtos.AdminBookingsDto;
 import com.cinema.dto.Dtos.MovieDto;
 import com.cinema.dto.Dtos.ReservationDto;
 import com.cinema.dto.Dtos.ReserveRequest;
@@ -42,5 +43,11 @@ public class ApiController {
     @PostMapping("/reservations")
     public List<ReservationDto> reserve(@RequestBody ReserveRequest request) {
         return service.reserve(request);
+    }
+
+    /** Admin: all bookings grouped by showtime + customer, with totals. */
+    @GetMapping("/admin/bookings")
+    public AdminBookingsDto adminBookings() {
+        return service.getAdminBookings();
     }
 }

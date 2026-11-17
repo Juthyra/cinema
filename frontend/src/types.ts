@@ -45,3 +45,19 @@ export interface ReservationResult {
   customerName: string;
   customerEmail: string;
 }
+
+export interface BookingGroup {
+  showtimeId: number;
+  movieTitle: string;
+  hall: string;
+  startsAt: string;
+  customerName: string;
+  customerEmail: string;
+  seats: string[];
+  bookedAt: string;
+}
+
+export interface AdminBookings {
+  totals: { bookings: number; seats: number; customers: number };
+  bookings: BookingGroup[];
+}

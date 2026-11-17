@@ -32,4 +32,16 @@ public final class Dtos {
     public record ReservationDto(Long id, Long showtimeId, String row, int seatNumber,
                                  String customerName, String customerEmail) {
     }
+
+    /** One booking group: seats booked by the same customer for the same showtime. */
+    public record BookingGroupDto(Long showtimeId, String movieTitle, String hall, String startsAt,
+                                  String customerName, String customerEmail, List<String> seats,
+                                  String bookedAt) {
+    }
+
+    public record AdminTotals(long bookings, long seats, long customers) {
+    }
+
+    public record AdminBookingsDto(AdminTotals totals, List<BookingGroupDto> bookings) {
+    }
 }
