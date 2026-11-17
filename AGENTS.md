@@ -26,11 +26,11 @@ summary so you follow it even if you never open the other file).
   the wrapper handles it). API on port 8080.
 - **Frontend:** React + TypeScript + Vite — `frontend/`. Run:
   `npm install` then `npm run dev` (port 5173, proxies `/api` → 8080).
-- **Database:** PostgreSQL. New machines: `SETUP-NEW-MACHINE.md`
+- **Database:** PostgreSQL. New machines: follow `README.md` §3
   (create role `cinema` / db `cinema`, point `application.properties` at
   the right port). This dev machine uses a user-level instance on **5433**.
-- **Full run/stop guide for the original dev machine:** `README.md`.
-- **Full contributing policy:** `CONTRIBUTING.md`.
+- **Complete manual (install → run → stop):** `README.md`.
+- **Full contributing policy:** `CONTRIBUTING.md` (this file summarizes it).
 
 ## When in doubt
 
