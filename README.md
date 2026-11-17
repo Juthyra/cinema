@@ -17,6 +17,10 @@ A simple cinema website: browse movies, pick a showtime, book seats.
 
 Demo data (5 movies) is seeded automatically on first start if the `movies` table is empty.
 
+> **Setting up on a new / different machine?** Follow
+> [`SETUP-NEW-MACHINE.md`](SETUP-NEW-MACHINE.md) — it covers installing the
+> tools, creating the database, and running everything from a clone.
+
 ## Prerequisites (already installed on this machine)
 
 | Tool | Location |
@@ -146,10 +150,13 @@ disconnect).
 
 ```
 cinema/
-├── README.md                 ← this file
+├── README.md                 ← this file (run/stop on this machine)
+├── SETUP-NEW-MACHINE.md      ← clone → install → run on a fresh device
 ├── screenshots/              ← UI verification screenshots
 ├── backend/                  ← Spring Boot (Java 21)
 │   ├── pom.xml
+│   ├── mvnw.cmd              ← Maven wrapper (no Maven install needed)
+│   ├── .mvn/wrapper/         ← wrapper config
 │   └── src/main/
 │       ├── java/com/cinema/
 │       │   ├── CinemaApplication.java   (entry point)
