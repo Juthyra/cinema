@@ -61,3 +61,26 @@ export interface AdminBookings {
   totals: { bookings: number; seats: number; customers: number };
   bookings: BookingGroup[];
 }
+
+export interface MovieCustomer {
+  name: string;
+  email: string;
+  seats: string[];
+  showtimes: string[];
+}
+
+export interface AdminMovieStats {
+  movieId: number;
+  title: string;
+  genre: string;
+  durationMinutes: number;
+  description: string;
+  bookings: number;
+  seatsBooked: number;
+  customers: number;
+  customerList: MovieCustomer[];
+}
+
+export interface AdminMovies {
+  movies: AdminMovieStats[];
+}
