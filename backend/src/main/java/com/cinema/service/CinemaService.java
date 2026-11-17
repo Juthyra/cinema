@@ -3,6 +3,9 @@ package com.cinema.service;
 import com.cinema.domain.Movie;
 import com.cinema.domain.SeatReservation;
 import com.cinema.domain.Showtime;
+import com.cinema.dto.Dtos.AdminBookingsDto;
+import com.cinema.dto.Dtos.AdminTotals;
+import com.cinema.dto.Dtos.BookingGroupDto;
 import com.cinema.dto.Dtos.MovieDto;
 import com.cinema.dto.Dtos.ReservationDto;
 import com.cinema.dto.Dtos.ReserveRequest;
@@ -80,6 +83,45 @@ public class CinemaService {
         }
         return new SeatMapDto(showtimeId, showtime.getMovie().getTitle(), showtime.getHall(),
                 showtime.getStartsAt().format(ISO), ROWS, SEATS_PER_ROW, seats);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminBookingsDto getAdminBookings() {
+        Map<Long, Showtime> showtimesById = new HashMap<>();
+        for (Showtime st : showtimes.findAll()) {
+            showtimesById.put(st.getId(), st);
+        }
+
+        // Group reservations: same showtime + same customer = one booking group.
+        Map<String, List<SeatReservation>> groups = new HashMap<>();
+        for (SeatReservation r : reservations.findAll()) {
+            String key = r.getShowtime().getId() + "|" + r.getCustomerName() + "|" + r.getCustomerEmail();
+            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(r);
+        }
+
+        List<BookingGroupDto> list = new ArrayList<>();
+        long totalSeats = 0;
+        Set<String> customers = new HashSet<>();
+        for (List<SeatReservation> rs : groups.values()) {
+            SeatReservation first = rs.get(0);
+            Showtime st = showtimesById.get(first.getShowtime().getId());
+            List<String> seats = rs.stream()
+                    .map(r -> r.getSeatRow() + r.getSeatNumber())
+                    .sorted()
+                    .toList();
+            String bookedAt = rs.stream()
+                    .map(SeatReservation::getCreatedAt)
+                    .min(Comparator.naturalOrder())
+                    .map(ISO::format)
+                    .orElse("");
+            list.add(new BookingGroupDto(st.getId(), st.getMovie().getTitle(), st.getHall(),
+                    st.getStartsAt().format(ISO), first.getCustomerName(), first.getCustomerEmail(),
+                    seats, bookedAt));
+            totalSeats += rs.size();
+            customers.add(first.getCustomerEmail());
+        }
+        list.sort(Comparator.comparing(BookingGroupDto::bookedAt).reversed());
+        return new AdminBookingsDto(new AdminTotals(list.size(), totalSeats, customers.size()), list);
     }
 
     @Transactional
