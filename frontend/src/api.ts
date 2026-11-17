@@ -1,4 +1,11 @@
-import type { AdminBookings, Movie, ReservePayload, ReservationResult, SeatMap } from './types';
+import type {
+  AdminBookings,
+  AdminMovies,
+  Movie,
+  ReservePayload,
+  ReservationResult,
+  SeatMap,
+} from './types';
 
 // Relative by default: the Vite dev server proxies /api to the backend.
 // Set VITE_API_URL to point at a backend on another host/port.
@@ -39,4 +46,8 @@ export function reserveSeats(payload: ReservePayload): Promise<ReservationResult
 
 export function getAdminBookings(): Promise<AdminBookings> {
   return http<AdminBookings>('/api/admin/bookings');
+}
+
+export function getAdminMovies(): Promise<AdminMovies> {
+  return http<AdminMovies>('/api/admin/movies');
 }

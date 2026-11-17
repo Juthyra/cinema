@@ -3,36 +3,12 @@ import { getMovies } from './api';
 import type { Movie, ShowtimeInfo } from './types';
 import SeatMapView from './components/SeatMapView';
 import AdminView from './components/AdminView';
+import { fmtDuration, fmtShowtime, GRADIENTS } from './lib/format';
 
 interface Selection {
   movie: Movie;
   showtime: ShowtimeInfo;
 }
-
-function fmtDuration(min: number): string {
-  return `${Math.floor(min / 60)}h ${min % 60}m`;
-}
-
-function fmtShowtime(iso: string): string {
-  const d = new Date(iso);
-  const today = new Date();
-  const tomorrow = new Date(today.getTime() + 86_400_000);
-  const day =
-    d.toDateString() === today.toDateString()
-      ? 'Today'
-      : d.toDateString() === tomorrow.toDateString()
-        ? 'Tomorrow'
-        : d.toLocaleDateString(undefined, { weekday: 'short' });
-  return `${day} ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
-}
-
-const GRADIENTS = [
-  'linear-gradient(135deg, #1e3a5f, #0f1c2e)',
-  'linear-gradient(135deg, #5f1e3a, #2e0f1c)',
-  'linear-gradient(135deg, #3a5f1e, #1c2e0f)',
-  'linear-gradient(135deg, #5f5a1e, #2e2a0f)',
-  'linear-gradient(135deg, #1e5f5a, #0f2e2a)',
-];
 
 export default function App() {
   const [movies, setMovies] = useState<Movie[]>([]);

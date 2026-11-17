@@ -1,6 +1,7 @@
 package com.cinema.controller;
 
 import com.cinema.dto.Dtos.AdminBookingsDto;
+import com.cinema.dto.Dtos.AdminMoviesDto;
 import com.cinema.dto.Dtos.MovieDto;
 import com.cinema.dto.Dtos.ReservationDto;
 import com.cinema.dto.Dtos.ReserveRequest;
@@ -49,5 +50,11 @@ public class ApiController {
     @GetMapping("/admin/bookings")
     public AdminBookingsDto adminBookings() {
         return service.getAdminBookings();
+    }
+
+    /** Admin: per-movie booking stats + customer lists. */
+    @GetMapping("/admin/movies")
+    public AdminMoviesDto adminMovies() {
+        return service.getAdminMovieStats();
     }
 }

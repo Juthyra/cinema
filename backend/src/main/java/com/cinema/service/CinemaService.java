@@ -4,8 +4,11 @@ import com.cinema.domain.Movie;
 import com.cinema.domain.SeatReservation;
 import com.cinema.domain.Showtime;
 import com.cinema.dto.Dtos.AdminBookingsDto;
+import com.cinema.dto.Dtos.AdminMovieStatsDto;
+import com.cinema.dto.Dtos.AdminMoviesDto;
 import com.cinema.dto.Dtos.AdminTotals;
 import com.cinema.dto.Dtos.BookingGroupDto;
+import com.cinema.dto.Dtos.MovieCustomerDto;
 import com.cinema.dto.Dtos.MovieDto;
 import com.cinema.dto.Dtos.ReservationDto;
 import com.cinema.dto.Dtos.ReserveRequest;
@@ -122,6 +125,57 @@ public class CinemaService {
         }
         list.sort(Comparator.comparing(BookingGroupDto::bookedAt).reversed());
         return new AdminBookingsDto(new AdminTotals(list.size(), totalSeats, customers.size()), list);
+    }
+
+    @Transactional(readOnly = true)
+    public AdminMoviesDto getAdminMovieStats() {
+        List<Movie> allMovies = movies.findAll();
+
+        // movieId -> customerEmail -> reservations for that movie
+        Map<Long, Map<String, List<SeatReservation>>> byMovieCustomer = new HashMap<>();
+        // distinct (movie, showtime, customer) triples = booking count
+        Set<String> bookingGroups = new HashSet<>();
+        for (SeatReservation r : reservations.findAll()) {
+            Showtime st = r.getShowtime();
+            long movieId = st.getMovie().getId();
+            byMovieCustomer.computeIfAbsent(movieId, k -> new HashMap<>())
+                    .computeIfAbsent(r.getCustomerEmail(), k -> new ArrayList<>())
+                    .add(r);
+            bookingGroups.add(movieId + "|" + st.getId() + "|" + r.getCustomerEmail());
+        }
+
+        List<AdminMovieStatsDto> out = new ArrayList<>();
+        for (Movie movie : allMovies) {
+            Map<String, List<SeatReservation>> cust =
+                    byMovieCustomer.getOrDefault(movie.getId(), Map.of());
+            long bookings = bookingGroups.stream()
+                    .filter(k -> k.startsWith(movie.getId() + "|"))
+                    .count();
+            long seatsBooked = cust.values().stream().mapToLong(List::size).sum();
+
+            List<MovieCustomerDto> customerList = new ArrayList<>();
+            for (List<SeatReservation> rs : cust.values()) {
+                SeatReservation first = rs.get(0);
+                List<String> seats = rs.stream()
+                        .map(r -> r.getSeatRow() + r.getSeatNumber())
+                        .sorted()
+                        .toList();
+                List<String> showtimes = rs.stream()
+                        .map(SeatReservation::getShowtime)
+                        .map(Showtime::getStartsAt)
+                        .distinct()
+                        .sorted()
+                        .map(ISO::format)
+                        .toList();
+                customerList.add(new MovieCustomerDto(first.getCustomerName(),
+                        first.getCustomerEmail(), seats, showtimes));
+            }
+            customerList.sort(Comparator.comparing(MovieCustomerDto::name));
+            out.add(new AdminMovieStatsDto(movie.getId(), movie.getTitle(), movie.getGenre(),
+                    movie.getDurationMinutes(), movie.getDescription(), bookings,
+                    seatsBooked, cust.size(), customerList));
+        }
+        return new AdminMoviesDto(out);
     }
 
     @Transactional
