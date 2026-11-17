@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getMovies } from './api';
 import type { Movie, ShowtimeInfo } from './types';
 import SeatMapView from './components/SeatMapView';
+import AdminView from './components/AdminView';
 
 interface Selection {
   movie: Movie;
@@ -38,6 +39,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [view, setView] = useState<'movies' | 'admin'>('movies');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -62,6 +64,20 @@ export default function App() {
       <header className="masthead">
         <h1>🎬 Starline Cinema</h1>
         <p>Pick a film, pick your seats, done.</p>
+        <nav className="nav">
+          <button
+            className={view === 'movies' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setView('movies')}
+          >
+            Movies
+          </button>
+          <button
+            className={view === 'admin' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setView('admin')}
+          >
+            Admin · Bookings
+          </button>
+        </nav>
       </header>
 
       {loading && <p className="muted">Loading the program…</p>}
@@ -73,7 +89,7 @@ export default function App() {
         </div>
       )}
 
-      {!loading && !error && (
+      {view === 'movies' && !loading && !error && (
         <main className="grid">
           {movies.map((movie, i) => (
             <article key={movie.id} className="card">
@@ -104,6 +120,8 @@ export default function App() {
           ))}
         </main>
       )}
+
+      {view === 'admin' && <AdminView />}
 
       {selection && (
         <SeatMapView
