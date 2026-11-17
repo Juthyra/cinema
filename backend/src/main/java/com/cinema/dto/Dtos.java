@@ -44,4 +44,18 @@ public final class Dtos {
 
     public record AdminBookingsDto(AdminTotals totals, List<BookingGroupDto> bookings) {
     }
+
+    /** One customer's bookings for a single movie (may span several showtimes). */
+    public record MovieCustomerDto(String name, String email, List<String> seats,
+                                   List<String> showtimes) {
+    }
+
+    /** Admin dashboard stats for one movie. */
+    public record AdminMovieStatsDto(Long movieId, String title, String genre, int durationMinutes,
+                                     String description, long bookings, long seatsBooked,
+                                     long customers, List<MovieCustomerDto> customerList) {
+    }
+
+    public record AdminMoviesDto(List<AdminMovieStatsDto> movies) {
+    }
 }
