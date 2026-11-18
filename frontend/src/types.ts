@@ -1,4 +1,5 @@
 export type HallType = 'STANDARD' | 'FAMILY' | 'COUPLE' | 'MODERN' | 'MIXED';
+export type HallStatus = 'ACTIVE' | 'MAINTENANCE' | 'CLOSED';
 export type SeatKind = 'STANDARD' | 'FAMILY' | 'COUPLE' | 'RECLINER' | 'SINGLE' | 'ACCESSIBLE';
 
 export interface ShowtimeInfo {
@@ -6,6 +7,7 @@ export interface ShowtimeInfo {
   hall: string;
   hallType: HallType;
   hallTypeLabel: string;
+  hallStatus: HallStatus;
   startsAt: string; // ISO local datetime, e.g. 2026-11-17T17:30
 }
 
@@ -95,4 +97,43 @@ export interface AdminMovieStats {
 
 export interface AdminMovies {
   movies: AdminMovieStats[];
+}
+
+export interface HallScheduleItem {
+  showtimeId: number;
+  movieTitle: string;
+  startsAt: string;
+  seatsBooked: number;
+}
+
+export interface AdminHall {
+  id: number;
+  name: string;
+  type: HallType;
+  typeLabel: string;
+  description: string;
+  status: HallStatus;
+  statusLabel: string;
+  capacity: number;
+  moviesOnDate: number;
+  showtimesOnDate: number;
+  schedule: HallScheduleItem[];
+}
+
+export interface AdminHalls {
+  date: string; // yyyy-mm-dd
+  totals: { halls: number; active: number; maintenance: number; closed: number };
+  halls: AdminHall[];
+}
+
+export interface HallLayout {
+  hallId: number;
+  hall: string;
+  hallType: HallType;
+  hallTypeLabel: string;
+  hallDescription: string;
+  maxSeats: number;
+  rows: string[];
+  seatsPerRow: number;
+  seats: SeatInfo[];
 }

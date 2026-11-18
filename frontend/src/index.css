@@ -374,3 +374,82 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
 /* Taken / selected always win over the kind tint */
 .seat.taken { background: var(--taken) !important; border-color: #5c2b31 !important; }
 .seat.selected { background: var(--accent) !important; border-color: var(--accent) !important; }
+
+/* ---- Admin · Halls ---- */
+.stat-num.ok { color: #4cc38a; }
+.stat-num.warn { color: #f5a524; }
+.stat-num.bad { color: var(--danger); }
+
+.halls-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.date-pick { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.85rem; }
+.date-pick input {
+  background: var(--panel-2);
+  border: 1px solid #2c3650;
+  border-radius: 8px;
+  color: var(--text);
+  padding: 7px 10px;
+  color-scheme: dark;
+}
+
+.type-filter { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip-btn {
+  background: var(--panel-2);
+  border: 1px solid #2c3650;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.chip-btn:hover { color: var(--text); border-color: #3b4763; }
+.chip-btn.active { background: var(--accent); border-color: var(--accent); color: #1a1405; font-weight: 600; }
+
+.hall-poster { height: 90px; }
+.hall-poster span { font-size: 1.5rem; letter-spacing: 1px; }
+
+.status-badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.status-badge.active { background: #12301f; color: #4cc38a; border: 1px solid #1f5a39; }
+.status-badge.maintenance { background: #3a2a0c; color: #f5a524; border: 1px solid #6b4a12; }
+.status-badge.closed { background: #3a1f24; color: #ff7b80; border: 1px solid #5c2b31; }
+
+.status-buttons { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.status-btn {
+  background: var(--panel-2);
+  border: 1px solid #2c3650;
+  color: var(--muted);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+.status-btn:disabled { opacity: 0.6; cursor: wait; }
+.status-btn:hover { color: var(--text); }
+.status-btn.on.active { background: #12301f; color: #4cc38a; border-color: #1f5a39; }
+.status-btn.on.maintenance { background: #3a2a0c; color: #f5a524; border-color: #6b4a12; }
+.status-btn.on.closed { background: #3a1f24; color: #ff7b80; border-color: #5c2b31; }
+
+.row-click { cursor: pointer; }
+.row-click:hover { background: #182036; }
+.row-selected { background: #1d2740; }
+
+.hall-detail .detail-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.hall-detail .hall-desc { margin: 0; }
+.layout-title { margin: 6px 0 0; font-size: 0.95rem; }
+.layout-preview {
+  background: var(--panel-2);
+  border: 1px solid #2a3350;
+  border-radius: 12px;
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+.seat.readonly { cursor: default; pointer-events: none; }
+
+/* Showtimes in a hall that is in maintenance / closed */
+.showtime.unavailable { opacity: 0.5; cursor: not-allowed; }

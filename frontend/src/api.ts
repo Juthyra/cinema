@@ -1,6 +1,9 @@
 import type {
   AdminBookings,
+  AdminHalls,
   AdminMovies,
+  HallLayout,
+  HallStatus,
   Movie,
   ReservePayload,
   ReservationResult,
@@ -50,4 +53,22 @@ export function getAdminBookings(): Promise<AdminBookings> {
 
 export function getAdminMovies(): Promise<AdminMovies> {
   return http<AdminMovies>('/api/admin/movies');
+}
+
+export function getAdminHalls(date: string): Promise<AdminHalls> {
+  return http<AdminHalls>(`/api/admin/halls?date=${encodeURIComponent(date)}`);
+}
+
+export function getHallLayout(hallId: number): Promise<HallLayout> {
+  return http<HallLayout>(`/api/admin/halls/${hallId}/layout`);
+}
+
+export function setHallStatus(
+  hallId: number,
+  status: HallStatus,
+): Promise<{ hallId: number; status: HallStatus }> {
+  return http(`/api/admin/halls/${hallId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
 }
