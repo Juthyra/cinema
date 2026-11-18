@@ -1,5 +1,7 @@
 package com.cinema.service;
 
+import com.cinema.domain.Hall;
+import com.cinema.domain.HallStatus;
 import com.cinema.domain.HallType;
 import com.cinema.domain.Movie;
 import com.cinema.domain.SeatReservation;
@@ -17,6 +19,7 @@ import com.cinema.dto.Dtos.SeatInfo;
 import com.cinema.dto.Dtos.SeatMapDto;
 import com.cinema.dto.Dtos.SeatRef;
 import com.cinema.dto.Dtos.ShowtimeInfo;
+import com.cinema.repository.HallRepository;
 import com.cinema.repository.MovieRepository;
 import com.cinema.repository.SeatReservationRepository;
 import com.cinema.repository.ShowtimeRepository;
@@ -43,9 +46,11 @@ public class CinemaService {
     private final MovieRepository movies;
     private final ShowtimeRepository showtimes;
     private final SeatReservationRepository reservations;
+    private final HallRepository halls;
 
     public CinemaService(MovieRepository movies, ShowtimeRepository showtimes,
-                         SeatReservationRepository reservations) {
+                         SeatReservationRepository reservations, HallRepository halls) {
+        this.halls = halls;
         this.movies = movies;
         this.showtimes = showtimes;
         this.reservations = reservations;
@@ -53,6 +58,10 @@ public class CinemaService {
 
     @Transactional(readOnly = true)
     public List<MovieDto> getMovies() {
+        Map<String, HallStatus> hallStatus = new HashMap<>();
+        for (Hall h : halls.findAll()) {
+            hallStatus.put(h.getName(), h.getStatus());
+        }
         List<Movie> all = movies.findAll();
         all.sort(Comparator.comparing(Movie::getTitle, String.CASE_INSENSITIVE_ORDER));
         List<MovieDto> result = new ArrayList<>();
@@ -61,6 +70,7 @@ public class CinemaService {
                     .sorted(Comparator.comparing(Showtime::getStartsAt))
                     .map(s -> new ShowtimeInfo(s.getId(), s.getHall(),
                             s.getHallType().name(), s.getHallType().label(),
+                            hallStatus.getOrDefault(s.getHall(), HallStatus.ACTIVE).name(),
                             s.getStartsAt().format(ISO)))
                     .toList();
             result.add(new MovieDto(movie.getId(), movie.getTitle(), movie.getGenre(),
@@ -183,6 +193,14 @@ public class CinemaService {
     public List<ReservationDto> reserve(ReserveRequest request) {
         Showtime showtime = findShowtime(request.showtimeId());
         validate(request, HallLayouts.of(showtime.getHallType()));
+        halls.findByName(showtime.getHall()).ifPresent(h -> {
+            if (h.getStatus() != HallStatus.ACTIVE) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        h.getName() + (h.getStatus() == HallStatus.MAINTENANCE
+                                ? " is under maintenance" : " is closed")
+                                + " - bookings are not available right now.");
+            }
+        });
 
         List<SeatReservation> toSave = new ArrayList<>();
         for (SeatRef ref : request.seats()) {

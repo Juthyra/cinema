@@ -2,7 +2,9 @@ package com.cinema.seed;
 
 import com.cinema.domain.Movie;
 import com.cinema.domain.Showtime;
+import com.cinema.domain.Hall;
 import com.cinema.domain.HallType;
+import com.cinema.repository.HallRepository;
 import com.cinema.repository.MovieRepository;
 import com.cinema.repository.ShowtimeRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -22,15 +24,18 @@ public class DataSeeder implements CommandLineRunner {
 
     private final MovieRepository movies;
     private final ShowtimeRepository showtimes;
+    private final HallRepository halls;
 
-    public DataSeeder(MovieRepository movies, ShowtimeRepository showtimes) {
+    public DataSeeder(MovieRepository movies, ShowtimeRepository showtimes, HallRepository halls) {
         this.movies = movies;
+        this.halls = halls;
         this.showtimes = showtimes;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
+        ensureHalls();
         backfillHallTypes();
         if (movies.count() > 0) {
             return;
@@ -64,6 +69,16 @@ public class DataSeeder implements CommandLineRunner {
             movies.save(movie);
         }
         System.out.println("Seeded " + movies.count() + " movies with showtimes.");
+    }
+
+    /** Hall 1-5 always exist (one per hall type); created if missing, never overwritten. */
+    private void ensureHalls() {
+        for (int n = 1; n <= 5; n++) {
+            String name = "Hall " + n;
+            if (halls.findByName(name).isEmpty()) {
+                halls.save(new Hall(name, HallType.forHallName(name)));
+            }
+        }
     }
 
     /** Showtimes created before hall types existed get a type from their hall name. */
