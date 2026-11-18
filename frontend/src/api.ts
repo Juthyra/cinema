@@ -66,9 +66,10 @@ export function getHallLayout(hallId: number): Promise<HallLayout> {
 export function setHallStatus(
   hallId: number,
   status: HallStatus,
-): Promise<{ hallId: number; status: HallStatus }> {
+  date: string,
+): Promise<{ hallId: number; date: string; status: HallStatus }> {
   return http(`/api/admin/halls/${hallId}/status`, {
     method: 'PUT',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, date }),
   });
 }

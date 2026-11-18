@@ -9,6 +9,7 @@ import SeatGrid from './SeatGrid';
  * - Stat cards + a date picker (movies/showtimes per hall are counted for that date).
  * - "By hall": boxes like the movies tab, filterable by hall category.
  * - "Listing": every hall in one table.
+ * - Status is per date: a hall with showtimes on that date is locked to Active.
  * - Click a hall to open a modal with its layout and schedule, and to set its status.
  */
 type Mode = 'halls' | 'list';
@@ -104,16 +105,9 @@ export default function HallsView() {
 
   async function changeStatus(hall: AdminHall, status: HallStatus) {
     if (status === hall.status) return;
-    if (status !== 'ACTIVE' && hall.showtimesOnDate > 0) {
-      const ok = window.confirm(
-        `${hall.name} has ${hall.showtimesOnDate} showtime(s) on ${date}. ` +
-          `Set it to ${status.toLowerCase()}? Customers will not be able to book it.`,
-      );
-      if (!ok) return;
-    }
     setBusy(true);
     try {
-      await setHallStatus(hall.id, status);
+      await setHallStatus(hall.id, status, date);
       await load();
     } catch (e) {
       setError((e as Error).message);
@@ -128,7 +122,13 @@ export default function HallsView() {
       <select
         className={`status-select ${hall.status.toLowerCase()}`}
         value={hall.status}
-        disabled={busy}
+        // A hall that plays a movie on this date must stay Active.
+        disabled={busy || hall.showtimesOnDate > 0}
+        title={
+          hall.showtimesOnDate > 0
+            ? `${hall.name} has ${hall.showtimesOnDate} showtime(s) on ${date}, so it must stay Active`
+            : `Status of ${hall.name} on ${date}`
+        }
         onClick={(e) => e.stopPropagation()}
         onChange={(e) => changeStatus(hall, e.target.value as HallStatus)}
       >
@@ -297,8 +297,11 @@ export default function HallsView() {
           <p className="hall-desc">{selected.description}</p>
 
           <div className="detail-row">
-            <span className="muted">Set status:</span>
+            <span className="muted">Status on {date}:</span>
             {statusSelect(selected)}
+            {selected.showtimesOnDate > 0 && (
+              <span className="muted">Has showtimes on this date - must stay Active.</span>
+            )}
           </div>
 
           <div className="stats">
