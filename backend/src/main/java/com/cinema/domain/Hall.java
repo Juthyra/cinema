@@ -25,10 +25,6 @@ public class Hall {
     @Column(nullable = false, length = 20)
     private HallType type;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private HallStatus status = HallStatus.ACTIVE;
-
     protected Hall() {
     }
 
@@ -40,6 +36,4 @@ public class Hall {
     public Long getId() { return id; }
     public String getName() { return name; }
     public HallType getType() { return type; }
-    public HallStatus getStatus() { return status; }
-    public void setStatus(HallStatus status) { this.status = status; }
 }

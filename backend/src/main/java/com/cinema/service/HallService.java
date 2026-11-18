@@ -1,6 +1,7 @@
 package com.cinema.service;
 
 import com.cinema.domain.Hall;
+import com.cinema.domain.HallDayStatus;
 import com.cinema.domain.HallStatus;
 import com.cinema.domain.HallType;
 import com.cinema.domain.SeatReservation;
@@ -8,9 +9,11 @@ import com.cinema.domain.Showtime;
 import com.cinema.dto.Dtos.HallAdminDto;
 import com.cinema.dto.Dtos.HallLayoutDto;
 import com.cinema.dto.Dtos.HallScheduleItem;
+import com.cinema.dto.Dtos.HallStatusDto;
 import com.cinema.dto.Dtos.HallTotals;
 import com.cinema.dto.Dtos.HallsAdminDto;
 import com.cinema.dto.Dtos.SeatInfo;
+import com.cinema.repository.HallDayStatusRepository;
 import com.cinema.repository.HallRepository;
 import com.cinema.repository.SeatReservationRepository;
 import com.cinema.repository.ShowtimeRepository;
@@ -33,12 +36,14 @@ public class HallService {
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private final HallRepository halls;
+    private final HallDayStatusRepository dayStatuses;
     private final ShowtimeRepository showtimes;
     private final SeatReservationRepository reservations;
 
-    public HallService(HallRepository halls, ShowtimeRepository showtimes,
-                       SeatReservationRepository reservations) {
+    public HallService(HallRepository halls, HallDayStatusRepository dayStatuses,
+                       ShowtimeRepository showtimes, SeatReservationRepository reservations) {
         this.halls = halls;
+        this.dayStatuses = dayStatuses;
         this.showtimes = showtimes;
         this.reservations = reservations;
     }
@@ -47,6 +52,12 @@ public class HallService {
     public HallsAdminDto getHalls(LocalDate date) {
         LocalDate day = date != null ? date : LocalDate.now();
         List<Showtime> onDay = showtimes.findByStartsAtBetween(day.atStartOfDay(), day.plusDays(1).atStartOfDay());
+
+        // status of each hall on THIS date (no row = ACTIVE)
+        Map<Long, HallStatus> statusOnDay = new HashMap<>();
+        for (HallDayStatus d : dayStatuses.findByDate(day)) {
+            statusOnDay.put(d.getHall().getId(), d.getStatus());
+        }
 
         // seats booked per showtime, for the schedule lines
         Map<Long, Long> booked = new HashMap<>();
@@ -62,8 +73,9 @@ public class HallService {
                             s.getStartsAt().format(ISO), booked.getOrDefault(s.getId(), 0L)))
                     .toList();
             long movies = schedule.stream().map(HallScheduleItem::movieTitle).distinct().count();
+            HallStatus st = statusOnDay.getOrDefault(h.getId(), HallStatus.ACTIVE);
             return new HallAdminDto(h.getId(), h.getName(), h.getType().name(), h.getType().label(),
-                    h.getType().description(), h.getStatus().name(), h.getStatus().label(),
+                    h.getType().description(), st.name(), st.label(),
                     HallLayouts.of(h.getType()).seats().size(), movies, schedule.size(), schedule);
         }).toList();
 
@@ -87,8 +99,14 @@ public class HallService {
     }
 
     @Transactional
-    public HallStatus setStatus(Long hallId, String status) {
+    public HallStatusDto setStatus(Long hallId, String status, String date) {
         Hall hall = find(hallId);
+        LocalDate day;
+        try {
+            day = LocalDate.parse(date);
+        } catch (RuntimeException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "date is required (yyyy-mm-dd)");
+        }
         HallStatus parsed;
         try {
             parsed = HallStatus.valueOf(status == null ? "" : status.trim().toUpperCase());
@@ -96,8 +114,21 @@ public class HallService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Status must be ACTIVE, MAINTENANCE or CLOSED");
         }
-        hall.setStatus(parsed);
-        return parsed;
+        long showtimeCount = showtimes.findByStartsAtBetween(day.atStartOfDay(), day.plusDays(1).atStartOfDay())
+                .stream().filter(s -> hall.getName().equals(s.getHall())).count();
+        if (parsed != HallStatus.ACTIVE && showtimeCount > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, hall.getName() + " has " + showtimeCount
+                    + " showtime(s) on " + day + ", so it must stay Active on that date.");
+        }
+        var existing = dayStatuses.findByHallIdAndDate(hallId, day);
+        if (parsed == HallStatus.ACTIVE) {
+            existing.ifPresent(dayStatuses::delete);
+        } else if (existing.isPresent()) {
+            existing.get().setStatus(parsed);
+        } else {
+            dayStatuses.save(new HallDayStatus(hall, day, parsed));
+        }
+        return new HallStatusDto(hallId, day.toString(), parsed.name());
     }
 
     private Hall find(Long id) {

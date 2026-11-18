@@ -76,10 +76,10 @@ public class ApiController {
         return hallService.getLayout(id);
     }
 
-    /** Admin: set a hall ACTIVE / MAINTENANCE / CLOSED. */
+    /** Admin: set a hall ACTIVE / MAINTENANCE / CLOSED on one date (not allowed if it has showtimes that day). */
     @PutMapping("/admin/halls/{id}/status")
     public HallStatusDto adminHallStatus(@PathVariable Long id, @RequestBody HallStatusRequest request) {
-        return new HallStatusDto(id, hallService.setStatus(id, request.status()).name());
+        return hallService.setStatus(id, request.status(), request.date());
     }
 
     /** Admin: per-movie booking stats + customer lists. */

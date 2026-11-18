@@ -86,9 +86,10 @@ public final class Dtos {
                                 int seatsPerRow, List<SeatInfo> seats) {
     }
 
-    public record HallStatusRequest(String status) {
+    /** date is yyyy-mm-dd: hall status is set per date. */
+    public record HallStatusRequest(String status, String date) {
     }
 
-    public record HallStatusDto(Long hallId, String status) {
+    public record HallStatusDto(Long hallId, String date, String status) {
     }
 }
