@@ -9,7 +9,7 @@ import SeatGrid from './SeatGrid';
  * - Stat cards + a date picker (movies/showtimes per hall are counted for that date).
  * - "By hall": boxes like the movies tab, filterable by hall category.
  * - "Listing": every hall in one table.
- * - Click a hall to see its layout and schedule, and to set it Active / Maintenance / Closed.
+ * - Click a hall to open a modal with its layout and schedule, and to set its status.
  */
 type Mode = 'halls' | 'list';
 
@@ -87,6 +87,15 @@ export default function HallsView() {
     };
   }, [selectedId]);
 
+  useEffect(() => {
+    if (selectedId === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedId(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedId]);
+
   const selected = data?.halls.find((h) => h.id === selectedId) ?? null;
   const visible = useMemo(
     () => (data ? data.halls.filter((h) => typeFilter === 'ALL' || h.type === typeFilter) : []),
@@ -113,23 +122,22 @@ export default function HallsView() {
     }
   }
 
-  function StatusButtons({ hall }: { hall: AdminHall }) {
+  /** Dropdown that shows only the current status; click to pick another one. */
+  function statusSelect(hall: AdminHall) {
     return (
-      <span className="status-buttons">
-        {STATUSES.map((s) => (
-          <button
-            key={s.value}
-            disabled={busy}
-            className={`status-btn ${s.value.toLowerCase()}${hall.status === s.value ? ' on' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              changeStatus(hall, s.value);
-            }}
-          >
-            {s.label}
-          </button>
+      <select
+        className={`status-select ${hall.status.toLowerCase()}`}
+        value={hall.status}
+        disabled={busy}
+        onClick={(e) => e.stopPropagation()}
+        onChange={(e) => changeStatus(hall, e.target.value as HallStatus)}
+      >
+        {STATUSES.map((st) => (
+          <option key={st.value} value={st.value}>
+            {st.label}
+          </option>
         ))}
-      </span>
+      </select>
     );
   }
 
@@ -208,8 +216,8 @@ export default function HallsView() {
               {visible.map((h) => (
                 <article
                   key={h.id}
-                  className={h.id === selectedId ? 'card selectable selected' : 'card selectable'}
-                  onClick={() => setSelectedId(h.id === selectedId ? null : h.id)}
+                  className="card selectable"
+                  onClick={() => setSelectedId(h.id)}
                 >
                   <div className="poster hall-poster" style={{ background: HEADER_BG[h.type] }}>
                     <span>{h.name}</span>
@@ -245,32 +253,28 @@ export default function HallsView() {
               <tr>
                 <th>Hall</th>
                 <th>Category</th>
-                <th>Status</th>
                 <th>Movies ({date})</th>
                 <th>Showtimes</th>
                 <th>Seats</th>
-                <th>Set status</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {data.halls.map((h) => (
                 <tr
                   key={h.id}
-                  className={h.id === selectedId ? 'row-click row-selected' : 'row-click'}
-                  onClick={() => setSelectedId(h.id === selectedId ? null : h.id)}
+                  className="row-click"
+                  onClick={() => setSelectedId(h.id)}
                 >
                   <td>
                     <b>{h.name}</b>
                   </td>
                   <td>{h.typeLabel}</td>
-                  <td>
-                    <StatusBadge hall={h} />
-                  </td>
                   <td>{h.moviesOnDate}</td>
                   <td>{h.showtimesOnDate}</td>
                   <td>{h.capacity}</td>
                   <td>
-                    <StatusButtons hall={h} />
+                    {statusSelect(h)}
                   </td>
                 </tr>
               ))}
@@ -280,8 +284,9 @@ export default function HallsView() {
       )}
 
       {selected && (
-        <section className="movie-detail hall-detail">
-          <div className="movie-detail-head">
+        <div className="overlay" onClick={() => setSelectedId(null)}>
+          <div className="modal hall-modal hall-detail" onClick={(e) => e.stopPropagation()}>
+          <div className="movie-detail-head modal-head-row">
             <h2>{selected.name}</h2>
             <span className="chip">{selected.typeLabel}</span>
             <StatusBadge hall={selected} />
@@ -293,7 +298,7 @@ export default function HallsView() {
 
           <div className="detail-row">
             <span className="muted">Set status:</span>
-            <StatusButtons hall={selected} />
+            {statusSelect(selected)}
           </div>
 
           <div className="stats">
@@ -347,7 +352,8 @@ export default function HallsView() {
           ) : (
             <p className="muted">Loading layout…</p>
           )}
-        </section>
+          </div>
+        </div>
       )}
     </section>
   );

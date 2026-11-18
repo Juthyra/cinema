@@ -453,3 +453,25 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
 
 /* Showtimes in a hall that is in maintenance / closed */
 .showtime.unavailable { opacity: 0.5; cursor: not-allowed; }
+
+/* Hall modal + status dropdown */
+.hall-modal { width: min(760px, 100%); }
+.hall-modal .movie-detail-head { margin-bottom: 4px; }
+.hall-modal .stats { margin: 6px 0; }
+.hall-modal .layout-title { margin: 14px 0 8px; }
+.status-select {
+  appearance: auto;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #2c3650;
+  background: var(--panel-2);
+  color: var(--text);
+}
+.status-select:disabled { opacity: 0.6; cursor: wait; }
+.status-select.active { color: #4cc38a; border-color: #1f5a39; background: #12301f; }
+.status-select.maintenance { color: #f5a524; border-color: #6b4a12; background: #3a2a0c; }
+.status-select.closed { color: #ff7b80; border-color: #5c2b31; background: #3a1f24; }
+.status-select option { background: var(--panel); color: var(--text); }
