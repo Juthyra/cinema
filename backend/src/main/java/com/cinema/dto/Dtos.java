@@ -8,18 +8,22 @@ import java.util.List;
  */
 public final class Dtos {
 
-    public record ShowtimeInfo(Long id, String hall, String startsAt) {
+    public record ShowtimeInfo(Long id, String hall, String hallType, String hallTypeLabel,
+                               String startsAt) {
     }
 
     public record MovieDto(Long id, String title, String genre, int durationMinutes,
                            String description, List<ShowtimeInfo> showtimes) {
     }
 
-    public record SeatInfo(String row, int number, boolean taken, String customerName) {
+    /** kind: STANDARD, FAMILY, COUPLE, RECLINER, SINGLE or ACCESSIBLE. gapBefore = aisle to its left. */
+    public record SeatInfo(String row, int number, boolean taken, String customerName,
+                           String kind, String section, boolean gapBefore) {
     }
 
     public record SeatMapDto(Long showtimeId, String movieTitle, String hall, String startsAt,
-                             List<String> rows, int seatsPerRow, List<SeatInfo> seats) {
+                             String hallType, String hallTypeLabel, String hallDescription,
+                             int maxSeats, List<String> rows, int seatsPerRow, List<SeatInfo> seats) {
     }
 
     public record SeatRef(String row, int seatNumber) {
