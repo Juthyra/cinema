@@ -3,6 +3,7 @@ import { getMovies } from './api';
 import type { Movie, ShowtimeInfo } from './types';
 import SeatMapView from './components/SeatMapView';
 import AdminView from './components/AdminView';
+import HallsView from './components/HallsView';
 import { fmtDuration, fmtShowtime, GRADIENTS } from './lib/format';
 
 interface Selection {
@@ -15,7 +16,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selection, setSelection] = useState<Selection | null>(null);
-  const [view, setView] = useState<'movies' | 'admin'>('movies');
+  const [view, setView] = useState<'movies' | 'admin' | 'halls'>('movies');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -31,9 +32,10 @@ export default function App() {
     }
   }, []);
 
+  // Reload when returning to the movies tab so hall status changes show up.
   useEffect(() => {
-    load();
-  }, [load]);
+    if (view === 'movies') load();
+  }, [view, load]);
 
   return (
     <div className="page">
@@ -52,6 +54,12 @@ export default function App() {
             onClick={() => setView('admin')}
           >
             Admin · Bookings
+          </button>
+          <button
+            className={view === 'halls' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setView('halls')}
+          >
+            Admin · Halls
           </button>
         </nav>
       </header>
@@ -83,12 +91,17 @@ export default function App() {
                   {movie.showtimes.map((st) => (
                     <button
                       key={st.id}
-                      className="showtime"
+                      className={st.hallStatus === 'ACTIVE' ? 'showtime' : 'showtime unavailable'}
+                      disabled={st.hallStatus !== 'ACTIVE'}
+                      title={
+                        st.hallStatus === 'ACTIVE' ? undefined : `${st.hall} is ${st.hallStatus === 'CLOSED' ? 'closed' : 'under maintenance'}`
+                      }
                       onClick={() => setSelection({ movie, showtime: st })}
                     >
                       {fmtShowtime(st.startsAt)}
                       <small>
                         {st.hall} · {st.hallTypeLabel}
+                        {st.hallStatus !== 'ACTIVE' && ` · ${st.hallStatus === 'CLOSED' ? 'Closed' : 'Maintenance'}`}
                       </small>
                     </button>
                   ))}
@@ -100,6 +113,8 @@ export default function App() {
       )}
 
       {view === 'admin' && <AdminView />}
+
+      {view === 'halls' && <HallsView />}
 
       {selection && (
         <SeatMapView

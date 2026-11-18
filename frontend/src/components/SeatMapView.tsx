@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getSeatMap, reserveSeats } from '../api';
-import type { SeatInfo, SeatKind, SeatMap, ShowtimeInfo } from '../types';
+import type { SeatMap, ShowtimeInfo } from '../types';
+import SeatGrid from './SeatGrid';
 
 interface Props {
   movieTitle: string;
@@ -8,25 +9,9 @@ interface Props {
   onClose: () => void;
 }
 
-const KIND_NOTE: Record<SeatKind, string> = {
-  STANDARD: '',
-  FAMILY: 'sit together in pods of 4',
-  COUPLE: 'love seats, each seat fits 2 people',
-  RECLINER: 'premium recliners',
-  SINGLE: 'single seats',
-  ACCESSIBLE: 'wheelchair-accessible spaces',
-};
-
 function fmtWhen(iso: string): string {
   const d = new Date(iso);
   return `${d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })} at ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
-}
-
-function seatLabel(seat: SeatInfo): string {
-  if (seat.taken && seat.customerName) return seat.customerName.slice(0, 1);
-  if (seat.kind === 'ACCESSIBLE') return '♿';
-  if (seat.kind === 'COUPLE') return `♥${seat.number}`;
-  return String(seat.number);
 }
 
 export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
@@ -53,16 +38,6 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
       cancelled = true;
     };
   }, [showtime.id]);
-
-  // Seats grouped by row, in layout order.
-  const rows = useMemo(() => {
-    if (!map) return [];
-    return map.rows.map((row) => ({ row, seats: map.seats.filter((s) => s.row === row) }));
-  }, [map]);
-  const multiSection = useMemo(
-    () => (map ? new Set(map.seats.map((s) => s.section)).size > 1 : false),
-    [map],
-  );
 
   const maxSeats = map?.maxSeats ?? 4;
 
@@ -133,58 +108,7 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
               <span className="lg selected">Selected</span>
               <span className="lg taken">Taken</span>
             </div>
-            {rows.map(({ row, seats }, ri) => {
-              const prevSection = ri > 0 ? rows[ri - 1].seats[0]?.section : null;
-              const section = seats[0]?.section;
-              const mid = (seats.length - 1) / 2;
-              return (
-                <div key={row}>
-                  {multiSection && section !== prevSection && (
-                    <div className="section-title">
-                      {section}
-                      {KIND_NOTE[seats[0].kind] && <small> - {KIND_NOTE[seats[0].kind]}</small>}
-                    </div>
-                  )}
-                  <div className="seatrow">
-                    <span className="rowlabel">{row}</span>
-                    {seats.map((seat, i) => {
-                      const key = `${seat.row}${seat.number}`;
-                      const isSel = selected.includes(key);
-                      const state = seat.taken ? 'taken' : isSel ? 'selected' : 'free';
-                      // Modern hall: rows curve around the screen (outer seats sit higher).
-                      const style =
-                        map.hallType === 'MODERN'
-                          ? { transform: `translateY(${-Math.round((i - mid) ** 2 * 1.4)}px)` }
-                          : undefined;
-                      const hint =
-                        seat.kind === 'COUPLE'
-                          ? ' (2 people)'
-                          : seat.kind === 'ACCESSIBLE'
-                            ? ' (wheelchair space)'
-                            : '';
-                      return (
-                        <span key={key} className={seat.gapBefore ? 'gap-before' : undefined}>
-                          <button
-                            className={`seat kind-${seat.kind.toLowerCase()} ${state}`}
-                            style={style}
-                            title={
-                              seat.taken && seat.customerName
-                                ? `Taken by ${seat.customerName}`
-                                : `${key}${hint}`
-                            }
-                            disabled={seat.taken}
-                            onClick={() => toggle(key)}
-                          >
-                            {seatLabel(seat)}
-                          </button>
-                        </span>
-                      );
-                    })}
-                    <span className="rowlabel">{row}</span>
-                  </div>
-                </div>
-              );
-            })}
+            <SeatGrid layout={map} selected={selected} onToggle={toggle} />
 
             <div className="form">
               <div className="form-row">

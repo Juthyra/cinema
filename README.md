@@ -34,6 +34,20 @@ without a type use).
 | Modern | 6 rows of curved premium recliners | 4 |
 | 3-Section | single seats (A-D), couple seats (E-F), wheelchair spaces (G) | 4 |
 
+### Hall administration (Admin · Halls tab)
+
+Halls (`Hall 1` ... `Hall 5`, created automatically) have a status **per
+date**: **Active** (default), **Maintenance** or **Closed**. A hall that has
+showtimes on a date must stay Active that day (changing it answers 409). Only
+Active halls accept bookings (`POST /api/reservations` answers 409 otherwise,
+and the movies tab greys out the showtime). The tab shows per-hall status, how many movies/showtimes
+each hall plays on a chosen date, a "By hall" box view (filter by hall
+category), a "Listing" table, and the layout of any hall you click.
+
+- `GET  /api/admin/halls?date=yyyy-mm-dd` - halls + counts for that date (default today)
+- `GET  /api/admin/halls/{id}/layout` - the hall's empty seat layout
+- `PUT  /api/admin/halls/{id}/status` - body `{"status":"ACTIVE|MAINTENANCE|CLOSED","date":"yyyy-mm-dd"}`
+
 Seeded halls: Hall 1 Standard, Hall 2 Family, Hall 3 Couple, Hall 4 Modern,
 Hall 5 3-Section. Older showtimes get their type from the hall name on start.
 

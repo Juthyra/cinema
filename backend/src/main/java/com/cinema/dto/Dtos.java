@@ -9,7 +9,7 @@ import java.util.List;
 public final class Dtos {
 
     public record ShowtimeInfo(Long id, String hall, String hallType, String hallTypeLabel,
-                               String startsAt) {
+                               String hallStatus, String startsAt) {
     }
 
     public record MovieDto(Long id, String title, String genre, int durationMinutes,
@@ -61,5 +61,35 @@ public final class Dtos {
     }
 
     public record AdminMoviesDto(List<AdminMovieStatsDto> movies) {
+    }
+
+    // ---- Hall administration ----
+
+    /** One showtime in a hall's schedule for a given date. */
+    public record HallScheduleItem(Long showtimeId, String movieTitle, String startsAt, long seatsBooked) {
+    }
+
+    public record HallAdminDto(Long id, String name, String type, String typeLabel, String description,
+                               String status, String statusLabel, int capacity,
+                               long moviesOnDate, long showtimesOnDate, List<HallScheduleItem> schedule) {
+    }
+
+    public record HallTotals(long halls, long active, long maintenance, long closed) {
+    }
+
+    public record HallsAdminDto(String date, HallTotals totals, List<HallAdminDto> halls) {
+    }
+
+    /** Empty seat layout of a hall (no bookings), same seat shape as the booking seat map. */
+    public record HallLayoutDto(Long hallId, String hall, String hallType, String hallTypeLabel,
+                                String hallDescription, int maxSeats, List<String> rows,
+                                int seatsPerRow, List<SeatInfo> seats) {
+    }
+
+    /** date is yyyy-mm-dd: hall status is set per date. */
+    public record HallStatusRequest(String status, String date) {
+    }
+
+    public record HallStatusDto(Long hallId, String date, String status) {
     }
 }
