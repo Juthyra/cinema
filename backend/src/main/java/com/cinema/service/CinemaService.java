@@ -1,5 +1,6 @@
 package com.cinema.service;
 
+import com.cinema.domain.HallType;
 import com.cinema.domain.Movie;
 import com.cinema.domain.SeatReservation;
 import com.cinema.domain.Showtime;
@@ -37,10 +38,6 @@ import java.util.Set;
 @Service
 public class CinemaService {
 
-    public static final List<String> ROWS = List.of("A", "B", "C", "D", "E", "F", "G", "H");
-    public static final int SEATS_PER_ROW = 10;
-    public static final int MAX_SEATS_PER_BOOKING = 4;
-
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private final MovieRepository movies;
@@ -62,7 +59,9 @@ public class CinemaService {
         for (Movie movie : all) {
             List<ShowtimeInfo> infos = movie.getShowtimes().stream()
                     .sorted(Comparator.comparing(Showtime::getStartsAt))
-                    .map(s -> new ShowtimeInfo(s.getId(), s.getHall(), s.getStartsAt().format(ISO)))
+                    .map(s -> new ShowtimeInfo(s.getId(), s.getHall(),
+                            s.getHallType().name(), s.getHallType().label(),
+                            s.getStartsAt().format(ISO)))
                     .toList();
             result.add(new MovieDto(movie.getId(), movie.getTitle(), movie.getGenre(),
                     movie.getDurationMinutes(), movie.getDescription(), infos));
@@ -77,15 +76,17 @@ public class CinemaService {
         for (SeatReservation r : reservations.findByShowtimeId(showtimeId)) {
             takenNames.put(r.getSeatRow() + r.getSeatNumber(), r.getCustomerName());
         }
+        HallLayouts.Layout layout = HallLayouts.of(showtime.getHallType());
         List<SeatInfo> seats = new ArrayList<>();
-        for (String row : ROWS) {
-            for (int number = 1; number <= SEATS_PER_ROW; number++) {
-                String name = takenNames.get(row + number);
-                seats.add(new SeatInfo(row, number, name != null, name));
-            }
+        for (HallLayouts.SeatSpec spec : layout.seats()) {
+            String name = takenNames.get(spec.key());
+            seats.add(new SeatInfo(spec.row(), spec.number(), name != null, name,
+                    spec.kind(), spec.section(), spec.gapBefore()));
         }
+        HallType type = showtime.getHallType();
         return new SeatMapDto(showtimeId, showtime.getMovie().getTitle(), showtime.getHall(),
-                showtime.getStartsAt().format(ISO), ROWS, SEATS_PER_ROW, seats);
+                showtime.getStartsAt().format(ISO), type.name(), type.label(), type.description(),
+                layout.maxSeats(), layout.rows(), layout.seatsPerRow(), seats);
     }
 
     @Transactional(readOnly = true)
@@ -181,7 +182,7 @@ public class CinemaService {
     @Transactional
     public List<ReservationDto> reserve(ReserveRequest request) {
         Showtime showtime = findShowtime(request.showtimeId());
-        validate(request);
+        validate(request, HallLayouts.of(showtime.getHallType()));
 
         List<SeatReservation> toSave = new ArrayList<>();
         for (SeatRef ref : request.seats()) {
@@ -207,15 +208,15 @@ public class CinemaService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Showtime not found"));
     }
 
-    private void validate(ReserveRequest request) {
+    private void validate(ReserveRequest request, HallLayouts.Layout layout) {
         if (request.showtimeId() == null) {
             throw badRequest("showtimeId is required");
         }
         if (request.seats() == null || request.seats().isEmpty()) {
             throw badRequest("Please pick at least one seat");
         }
-        if (request.seats().size() > MAX_SEATS_PER_BOOKING) {
-            throw badRequest("You can book at most " + MAX_SEATS_PER_BOOKING + " seats at once");
+        if (request.seats().size() > layout.maxSeats()) {
+            throw badRequest("You can book at most " + layout.maxSeats() + " seats at once in this hall");
         }
         if (request.customerName() == null || request.customerName().isBlank()) {
             throw badRequest("Name is required");
@@ -224,12 +225,14 @@ public class CinemaService {
             throw badRequest("A valid email is required");
         }
         Set<String> seen = new HashSet<>();
+        Set<String> validKeys = layout.keys();
         for (SeatRef ref : request.seats()) {
-            if (ref.row() == null || !ROWS.contains(ref.row().toUpperCase())) {
+            if (ref.row() == null || !layout.rows().contains(ref.row().toUpperCase())) {
                 throw badRequest("Invalid seat row: " + ref.row());
             }
-            if (ref.seatNumber() < 1 || ref.seatNumber() > SEATS_PER_ROW) {
-                throw badRequest("Invalid seat number: " + ref.seatNumber());
+            if (!validKeys.contains(ref.row().toUpperCase() + ref.seatNumber())) {
+                throw badRequest("Seat " + ref.row().toUpperCase() + ref.seatNumber()
+                        + " does not exist in this hall");
             }
             if (!seen.add(ref.row().toUpperCase() + ref.seatNumber())) {
                 throw badRequest("Duplicate seat in request");

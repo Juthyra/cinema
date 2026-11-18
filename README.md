@@ -20,6 +20,23 @@ paths are shown).
 - `POST /api/reservations` — book 1–4 seats, all-or-nothing; a DB unique
   constraint (`uk_showtime_seat`) makes double-booking impossible (returns 409)
 
+### Hall types
+
+Each showtime has a hall type that decides the seat layout (`HallType` +
+`service/HallLayouts.java`). **Standard** is the default (and what showtimes
+without a type use).
+
+| Type | Layout | Max seats / booking |
+|------|--------|---------------------|
+| Standard (default) | 8 rows x 10 single seats | 4 |
+| Family | 6 rows of two 4-seat pods | 6 |
+| Couple | 6 rows of double love seats (1 seat = 2 people) | 4 |
+| Modern | 6 rows of curved premium recliners | 4 |
+| 3-Section | single seats (A-D), couple seats (E-F), wheelchair spaces (G) | 4 |
+
+Seeded halls: Hall 1 Standard, Hall 2 Family, Hall 3 Couple, Hall 4 Modern,
+Hall 5 3-Section. Older showtimes get their type from the hall name on start.
+
 Demo data (5 movies) is seeded automatically on first start if the `movies`
 table is empty.
 

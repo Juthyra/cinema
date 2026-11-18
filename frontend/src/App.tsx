@@ -87,7 +87,9 @@ export default function App() {
                       onClick={() => setSelection({ movie, showtime: st })}
                     >
                       {fmtShowtime(st.startsAt)}
-                      <small>{st.hall}</small>
+                      <small>
+                        {st.hall} · {st.hallTypeLabel}
+                      </small>
                     </button>
                   ))}
                 </div>
