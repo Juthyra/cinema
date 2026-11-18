@@ -1,6 +1,11 @@
+export type HallType = 'STANDARD' | 'FAMILY' | 'COUPLE' | 'MODERN' | 'MIXED';
+export type SeatKind = 'STANDARD' | 'FAMILY' | 'COUPLE' | 'RECLINER' | 'SINGLE' | 'ACCESSIBLE';
+
 export interface ShowtimeInfo {
   id: number;
   hall: string;
+  hallType: HallType;
+  hallTypeLabel: string;
   startsAt: string; // ISO local datetime, e.g. 2026-11-17T17:30
 }
 
@@ -18,6 +23,9 @@ export interface SeatInfo {
   number: number;
   taken: boolean;
   customerName: string | null;
+  kind: SeatKind;
+  section: string;
+  gapBefore: boolean; // aisle to the left of this seat
 }
 
 export interface SeatMap {
@@ -25,6 +33,10 @@ export interface SeatMap {
   movieTitle: string;
   hall: string;
   startsAt: string;
+  hallType: HallType;
+  hallTypeLabel: string;
+  hallDescription: string;
+  maxSeats: number;
   rows: string[];
   seatsPerRow: number;
   seats: SeatInfo[];

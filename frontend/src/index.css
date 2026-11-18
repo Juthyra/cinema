@@ -332,3 +332,45 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
   font-size: 0.85rem;
 }
 .movie-detail-head .close-btn:hover { color: var(--text); border-color: var(--accent); }
+
+/* ---- Hall types ---- */
+.hall-desc { color: var(--muted); font-size: 0.82rem; margin: 0 0 12px; }
+.section-title {
+  margin: 12px 0 6px;
+  padding-top: 8px;
+  border-top: 1px dashed #2a3350;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-align: center;
+}
+.section-title small { color: var(--muted); font-weight: 400; letter-spacing: 0; text-transform: none; }
+.seatrow > span:not(.rowlabel) { display: inline-flex; }
+.seatrow > .gap-before { margin-left: 22px; }
+
+/* Family: pods of four, roomy seats in a warm tint */
+.seat.kind-family { width: 38px; height: 34px; border-color: #4f7a5a; background: #1d3328; }
+.seat.kind-family.free:hover { background: #28513a; }
+.hall-family .seatrow { margin-bottom: 11px; }
+
+/* Couple: double-width love seats */
+.seat.kind-couple { width: 76px; height: 32px; border-radius: 14px 14px 6px 6px; border-color: #8a4a78; background: #35203a; }
+.seat.kind-couple.free:hover { background: #4d2d54; }
+
+/* Modern: big recliners, dark glass look, curved rows */
+.hall-modern { background: linear-gradient(180deg, #10172b 0%, #0c1020 100%); border-color: #3a4a7a; }
+.hall-modern .screen { border-top: 3px solid #5b8cff; border-radius: 50% 50% 0 0 / 14px 14px 0 0; color: #7f9cff; }
+.hall-modern .seatrow { margin-bottom: 14px; }
+.seat.kind-recliner { width: 48px; height: 38px; border-radius: 14px 14px 6px 6px; border-color: #5b8cff; background: #17224a; }
+.seat.kind-recliner.free:hover { background: #22336e; }
+
+/* 3-section hall */
+.seat.kind-single { border-color: #39456a; }
+.seat.kind-accessible { width: 46px; height: 34px; border-color: #3aa6c9; background: #112d3a; font-size: 1rem; }
+.seat.kind-accessible.free:hover { background: #1a4558; }
+
+/* Taken / selected always win over the kind tint */
+.seat.taken { background: var(--taken) !important; border-color: #5c2b31 !important; }
+.seat.selected { background: var(--accent) !important; border-color: var(--accent) !important; }
