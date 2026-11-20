@@ -19,6 +19,8 @@ paths are shown).
 - `GET  /api/showtimes/{id}/seats` — seat map (8 rows A–H × 10 seats, per showtime)
 - `GET  /api/tickets?email={email}` — one customer's own tickets, looked up by the
   email they booked with; upcoming showtimes first, each with a booking reference
+- `DELETE /api/tickets?email={email}&reference={reference}` — cancel a whole ticket
+  (all of its seats) while its showtime is still in the future
 - `POST /api/reservations` — book 1–4 seats, all-or-nothing; a DB unique
   constraint (`uk_showtime_seat`) makes double-booking impossible (returns 409)
 

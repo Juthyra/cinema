@@ -27,6 +27,9 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw new Error(message);
   }
+  if (res.status === 204) {
+    return undefined as T;
+  }
   return (await res.json()) as T;
 }
 
@@ -47,6 +50,11 @@ export function reserveSeats(payload: ReservePayload): Promise<ReservationResult
 
 export function getTickets(email: string): Promise<Ticket[]> {
   return http<Ticket[]>(`/api/tickets?email=${encodeURIComponent(email)}`);
+}
+
+export function cancelTicket(email: string, reference: string): Promise<void> {
+  const query = `email=${encodeURIComponent(email)}&reference=${encodeURIComponent(reference)}`;
+  return http<void>(`/api/tickets?${query}`, { method: 'DELETE' });
 }
 
 export function getAdminBookings(): Promise<AdminBookings> {

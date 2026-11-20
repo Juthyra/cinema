@@ -101,10 +101,8 @@ public class CinemaService {
         if (email == null || !email.contains("@")) {
             throw badRequest("A valid email is required");
         }
-        Map<Long, List<SeatReservation>> byShowtime = new LinkedHashMap<>();
-        for (SeatReservation r : reservations.findByCustomerEmailIgnoreCase(email.trim())) {
-            byShowtime.computeIfAbsent(r.getShowtime().getId(), k -> new ArrayList<>()).add(r);
-        }
+        Map<Long, List<SeatReservation>> byShowtime =
+                groupByShowtime(reservations.findByCustomerEmailIgnoreCase(email.trim()));
 
         LocalDateTime now = LocalDateTime.now();
         List<TicketDto> upcoming = new ArrayList<>();
@@ -123,9 +121,8 @@ public class CinemaService {
                     .min(Comparator.naturalOrder())
                     .map(ISO::format)
                     .orElse("");
-            long firstId = group.stream().mapToLong(SeatReservation::getId).min().orElse(0L);
             TicketDto ticket = new TicketDto(
-                    "TKT-" + showtime.getId() + "-" + String.format("%04d", firstId),
+                    referenceFor(group),
                     showtime.getId(), movie.getTitle(), movie.getGenre(), movie.getDurationMinutes(),
                     showtime.getHall(), showtime.getHallType().name(), showtime.getHallType().label(),
                     showtime.getStartsAt().format(ISO), seats, first.getCustomerName(),
@@ -136,6 +133,51 @@ public class CinemaService {
         past.sort(Comparator.comparing(TicketDto::startsAt).reversed());
         upcoming.addAll(past);
         return upcoming;
+    }
+
+    /**
+     * Cancel one whole ticket (every seat in it) for the customer who booked it.
+     * Refuses once the showtime has started, and never touches another customer's seats.
+     */
+    @Transactional
+    public void cancelTicket(String email, String reference) {
+        if (email == null || !email.contains("@")) {
+            throw badRequest("A valid email is required");
+        }
+        if (reference == null || reference.isBlank()) {
+            throw badRequest("A ticket reference is required");
+        }
+        List<SeatReservation> match = null;
+        for (List<SeatReservation> group : groupByShowtime(
+                reservations.findByCustomerEmailIgnoreCase(email.trim())).values()) {
+            if (referenceFor(group).equalsIgnoreCase(reference.trim())) {
+                match = group;
+                break;
+            }
+        }
+        if (match == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "No ticket " + reference.trim() + " found for that email");
+        }
+        if (!match.get(0).getShowtime().getStartsAt().isAfter(LocalDateTime.now())) {
+            throw badRequest("That showtime has already started, so this ticket can no longer be cancelled");
+        }
+        reservations.deleteAll(match);
+    }
+
+    /** One entry per ticket: the customer's seats grouped by showtime. */
+    private static Map<Long, List<SeatReservation>> groupByShowtime(List<SeatReservation> rows) {
+        Map<Long, List<SeatReservation>> byShowtime = new LinkedHashMap<>();
+        for (SeatReservation r : rows) {
+            byShowtime.computeIfAbsent(r.getShowtime().getId(), k -> new ArrayList<>()).add(r);
+        }
+        return byShowtime;
+    }
+
+    /** The reference printed on a ticket - also the handle used to cancel it. */
+    private static String referenceFor(List<SeatReservation> group) {
+        long firstId = group.stream().mapToLong(SeatReservation::getId).min().orElse(0L);
+        return "TKT-" + group.get(0).getShowtime().getId() + "-" + String.format("%04d", firstId);
     }
 
     @Transactional(readOnly = true)

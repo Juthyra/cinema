@@ -460,6 +460,22 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
 .ticket-download:hover { background: var(--accent); color: #1a1405; }
 .ticket-download:active { transform: translateY(1px); }
 
+.ticket-cancel {
+  margin-top: 6px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid #6d2f34;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.ticket-cancel:hover { border-color: var(--danger); background: #2a1a1e; }
+.ticket-cancel.confirm { background: var(--danger); border-color: var(--danger); color: #fff; }
+.ticket-cancel:disabled { opacity: 0.55; cursor: not-allowed; }
+
 @media (max-width: 640px) {
   .ticket { flex-direction: column; }
   .ticket-stub { width: auto; border-left: none; border-top: 2px dashed #2f3a52; }

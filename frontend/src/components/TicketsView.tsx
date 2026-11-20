@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { getTickets } from '../api';
+import { cancelTicket, getTickets } from '../api';
 import type { Ticket } from '../types';
 import { fmtDuration, fmtShowtime, fmtWhen } from '../lib/format';
 
@@ -17,14 +17,17 @@ function rememberedEmail(): string {
 /**
  * Customer view: enter the email you booked with and see every ticket —
  * movie, hall, showtime, seats, booking reference, when it was booked.
+ * An upcoming ticket can be downloaded as a PDF or cancelled.
  */
 export default function TicketsView() {
   const [email, setEmail] = useState(rememberedEmail);
   const [tickets, setTickets] = useState<Ticket[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [lookedUp, setLookedUp] = useState('');
   const [busyRef, setBusyRef] = useState<string | null>(null);
+  const [confirmRef, setConfirmRef] = useState<string | null>(null);
 
   const lookup = useCallback(async (value: string) => {
     const clean = value.trim();
@@ -35,6 +38,7 @@ export default function TicketsView() {
     }
     setLoading(true);
     setError(null);
+    setNotice(null);
     try {
       const found = await getTickets(clean);
       setTickets(found);
@@ -65,6 +69,26 @@ export default function TicketsView() {
     }
   }
 
+  async function cancel(ticket: Ticket) {
+    setBusyRef(ticket.reference);
+    setError(null);
+    try {
+      await cancelTicket(ticket.customerEmail, ticket.reference);
+      setConfirmRef(null);
+      // Refresh first: lookup() clears the notice, so set it afterwards.
+      await lookup(ticket.customerEmail);
+      setNotice(
+        `Cancelled ${ticket.seats.length} seat${ticket.seats.length > 1 ? 's' : ''} for ${
+          ticket.movieTitle
+        }. Those seats are free again.`,
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusyRef(null);
+    }
+  }
+
   return (
     <section className="tickets">
       <form
@@ -87,6 +111,7 @@ export default function TicketsView() {
       </form>
 
       {error && <div className="notice err">{error}</div>}
+      {notice && <div className="notice ok">{notice}</div>}
 
       {tickets &&
         !error &&
@@ -138,8 +163,26 @@ export default function TicketsView() {
                       disabled={busyRef === t.reference}
                       title="Download this ticket as a PDF"
                     >
-                      {busyRef === t.reference ? 'Building…' : '⬇ Download PDF'}
+                      {busyRef === t.reference ? 'Working…' : '⬇ Download PDF'}
                     </button>
+                    {t.upcoming && (
+                      <button
+                        className={
+                          confirmRef === t.reference ? 'ticket-cancel confirm' : 'ticket-cancel'
+                        }
+                        onClick={() =>
+                          confirmRef === t.reference ? void cancel(t) : setConfirmRef(t.reference)
+                        }
+                        disabled={busyRef === t.reference}
+                        title="Cancel this booking and free the seats"
+                      >
+                        {busyRef === t.reference
+                          ? 'Cancelling…'
+                          : confirmRef === t.reference
+                            ? 'Yes, cancel it'
+                            : 'Cancel booking'}
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}
