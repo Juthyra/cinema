@@ -39,6 +39,16 @@ export default function AdminView() {
     };
   }, []);
 
+  // Esc closes the movie popup.
+  useEffect(() => {
+    if (selectedId === null) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedId(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selectedId]);
+
   const filtered = useMemo(() => {
     if (!bookings) return [];
     const q = filter.trim().toLowerCase();
@@ -130,65 +140,81 @@ export default function AdminView() {
             </main>
 
             {selected && (
-              <section className="movie-detail">
-                <div className="movie-detail-head">
-                  <h2>{selected.title}</h2>
-                  <span className="chip">{selected.genre}</span>
-                  <button className="close-btn" onClick={() => setSelectedId(null)} title="Close">
-                    ✕
-                  </button>
-                </div>
+              <div className="overlay" onClick={() => setSelectedId(null)}>
+                <div
+                  className="modal admin-modal"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={`${selected.title} bookings`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="modal-head">
+                    <div>
+                      <h2>{selected.title}</h2>
+                      <p className="sub">
+                        {selected.genre} · {fmtDuration(selected.durationMinutes)}
+                      </p>
+                    </div>
+                    <button
+                      className="close"
+                      onClick={() => setSelectedId(null)}
+                      aria-label="Close"
+                    >
+                      ×
+                    </button>
+                  </div>
 
-                <div className="stats">
-                  <div className="stat-card">
-                    <span className="stat-num">{selected.bookings}</span>
-                    <span className="stat-label">bookings</span>
+                  <div className="stats">
+                    <div className="stat-card">
+                      <span className="stat-num">{selected.bookings}</span>
+                      <span className="stat-label">bookings</span>
+                    </div>
+                    <div className="stat-card">
+                      <span className="stat-num">{selected.seatsBooked}</span>
+                      <span className="stat-label">seats booked</span>
+                    </div>
+                    <div className="stat-card">
+                      <span className="stat-num">{selected.customers}</span>
+                      <span className="stat-label">customers</span>
+                    </div>
                   </div>
-                  <div className="stat-card">
-                    <span className="stat-num">{selected.seatsBooked}</span>
-                    <span className="stat-label">seats booked</span>
-                  </div>
-                  <div className="stat-card">
-                    <span className="stat-num">{selected.customers}</span>
-                    <span className="stat-label">customers</span>
-                  </div>
-                </div>
 
-                {selected.customerList.length === 0 ? (
-                  <p className="muted">No bookings for this movie yet.</p>
-                ) : (
-                  <div className="table-wrap">
-                    <table className="bookings">
-                      <thead>
-                        <tr>
-                          <th>Customer</th>
-                          <th>Email</th>
-                          <th>Seats</th>
-                          <th>Showtimes</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selected.customerList.map((c) => (
-                          <tr key={c.email}>
-                            <td>{c.name}</td>
-                            <td className="email">{c.email}</td>
-                            <td>
-                              <span className="seat-tags">
-                                {c.seats.map((s) => (
-                                  <span key={s} className="seat-tag">
-                                    {s}
-                                  </span>
-                                ))}
-                              </span>
-                            </td>
-                            <td className="email">{c.showtimes.map(fmtShowtime).join(', ')}</td>
+                  {selected.customerList.length === 0 ? (
+                    <p className="muted empty-note">No bookings yet.</p>
+                  ) : (
+                    <div className="table-wrap">
+                      <table className="bookings">
+                        <thead>
+                          <tr>
+                            <th>Customer</th>
+                            <th>Email</th>
+                            <th>Seats</th>
+                            <th>Showtimes</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
+                        </thead>
+                        <tbody>
+                          {selected.customerList.map((c) => (
+                            <tr key={c.email}>
+                              <td>{c.name}</td>
+                              <td className="email">{c.email}</td>
+                              <td>
+                                <span className="seat-tags">
+                                  {c.seats.map((s) => (
+                                    <span key={s} className="seat-tag">
+                                      {s}
+                                    </span>
+                                  ))}
+                                </span>
+                              </td>
+                              <td className="email">{c.showtimes.map(fmtShowtime).join(', ')}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </>
         ))}
