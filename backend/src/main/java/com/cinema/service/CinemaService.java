@@ -91,7 +91,7 @@ public class CinemaService {
         for (HallLayouts.SeatSpec spec : layout.seats()) {
             String name = takenNames.get(spec.key());
             seats.add(new SeatInfo(spec.row(), spec.number(), name != null, name,
-                    spec.kind(), spec.section(), spec.gapBefore()));
+                    spec.kind(), spec.section(), spec.gapBefore(), TicketPrices.of(spec.kind())));
         }
         HallType type = showtime.getHallType();
         return new SeatMapDto(showtimeId, showtime.getMovie().getTitle(), showtime.getHall(),
@@ -192,12 +192,22 @@ public class CinemaService {
     @Transactional
     public List<ReservationDto> reserve(ReserveRequest request) {
         Showtime showtime = findShowtime(request.showtimeId());
-        validate(request, HallLayouts.of(showtime.getHallType()));
+        HallLayouts.Layout layout = HallLayouts.of(showtime.getHallType());
+        validate(request, layout);
+
+        // The layout knows what each seat is, so the price comes from it and is stored
+        // on the row: a later price change must not rewrite what someone already paid.
+        Map<String, String> kindBySeat = new HashMap<>();
+        for (HallLayouts.SeatSpec spec : layout.seats()) {
+            kindBySeat.put(spec.key(), spec.kind());
+        }
 
         List<SeatReservation> toSave = new ArrayList<>();
         for (SeatRef ref : request.seats()) {
-            toSave.add(new SeatReservation(showtime, ref.row().toUpperCase(), ref.seatNumber(),
-                    request.customerName(), request.customerEmail()));
+            String row = ref.row().toUpperCase();
+            toSave.add(new SeatReservation(showtime, row, ref.seatNumber(),
+                    request.customerName(), request.customerEmail(),
+                    TicketPrices.of(kindBySeat.get(row + ref.seatNumber()))));
         }
         try {
             for (SeatReservation r : toSave) {
@@ -209,7 +219,8 @@ public class CinemaService {
         }
         return toSave.stream()
                 .map(r -> new ReservationDto(r.getId(), request.showtimeId(), r.getSeatRow(),
-                        r.getSeatNumber(), r.getCustomerName(), r.getCustomerEmail()))
+                        r.getSeatNumber(), r.getCustomerName(), r.getCustomerEmail(),
+                        r.getPriceSen()))
                 .toList();
     }
 

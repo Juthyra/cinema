@@ -38,6 +38,24 @@ without a type use).
 Seeded halls: Hall 1 Standard, Hall 2 Family, Hall 3 Couple, Hall 4 Modern,
 Hall 5 3-Section. Older showtimes get their type from the hall name on start.
 
+### Ticket prices
+
+Prices are per seat and live in `service/TicketPrices.java`; they are held in sen
+(1/100 ringgit) so nothing rounds badly. They follow mid-tier Klang Valley rates:
+a standard adult 2D seat sells for roughly RM14–23, premium recliner halls run
+RM17–30, and OKU seats RM10–15.
+
+| Seat kind | Halls | Price |
+|-----------|-------|-------|
+| Standard / Single / Family pod | Standard, 3-Section, Family | RM18.00 |
+| Love seat (one seat = two people) | Couple, 3-Section | RM30.00 |
+| Recliner (premium) | Modern | RM26.00 |
+| Accessible (wheelchair space) | 3-Section | RM12.00 |
+
+Every reservation stores the price it was sold at (`seat_reservations.price_sen`),
+so changing the table never rewrites what someone has already paid. Seats booked
+before that column existed are backfilled on startup from their hall layout.
+
 Demo data (5 movies) is seeded automatically on first start if the `movies`
 table is empty.
 

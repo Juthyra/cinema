@@ -1,10 +1,14 @@
 package com.cinema.seed;
 
 import com.cinema.domain.Movie;
+import com.cinema.domain.SeatReservation;
 import com.cinema.domain.Showtime;
 import com.cinema.domain.HallType;
 import com.cinema.repository.MovieRepository;
+import com.cinema.repository.SeatReservationRepository;
 import com.cinema.repository.ShowtimeRepository;
+import com.cinema.service.HallLayouts;
+import com.cinema.service.TicketPrices;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -15,23 +19,28 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Seeds a small demo catalogue on first start (when the movies table is empty).
+ * Seeds a small demo catalogue on first start (when the movies table is empty),
+ * and backfills older rows after a schema change.
  */
 @Component
 public class DataSeeder implements CommandLineRunner {
 
     private final MovieRepository movies;
     private final ShowtimeRepository showtimes;
+    private final SeatReservationRepository reservations;
 
-    public DataSeeder(MovieRepository movies, ShowtimeRepository showtimes) {
+    public DataSeeder(MovieRepository movies, ShowtimeRepository showtimes,
+                      SeatReservationRepository reservations) {
         this.movies = movies;
         this.showtimes = showtimes;
+        this.reservations = reservations;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
         backfillHallTypes();
+        backfillPrices();
         if (movies.count() > 0) {
             return;
         }
@@ -75,6 +84,24 @@ public class DataSeeder implements CommandLineRunner {
                     s.setHallType(HallType.forHallName(s.getHall()));
                     showtimes.save(s);
                 });
+    }
+
+    /** Seats booked before prices existed get the price of the kind of seat they are. */
+    private void backfillPrices() {
+        for (SeatReservation r : reservations.findAll()) {
+            if (r.getPriceSen() > 0) {
+                continue;
+            }
+            HallLayouts.Layout layout = HallLayouts.of(r.getShowtime().getHallType());
+            String key = r.getSeatRow() + r.getSeatNumber();
+            int priceSen = layout.seats().stream()
+                    .filter(spec -> spec.key().equals(key))
+                    .findFirst()
+                    .map(spec -> TicketPrices.of(spec.kind()))
+                    .orElseGet(() -> TicketPrices.of(null));
+            r.setPriceSen(priceSen);
+            reservations.save(r);
+        }
     }
 
     private static LocalDateTime at(LocalDate day, int hour, int minute) {
