@@ -15,7 +15,8 @@ paths are shown).
 
 ## What it does
 
-- `GET  /api/movies` — movies with their showtimes
+- `GET  /api/movies` — movies with their showtimes; each showtime reports `seatsTotal`
+  and `seatsLeft`, so the grid can show how many seats are still free
 - `GET  /api/showtimes/{id}/seats` — seat map (8 rows A–H × 10 seats, per showtime)
 - `POST /api/reservations` — book 1–4 seats, all-or-nothing; a DB unique
   constraint (`uk_showtime_seat`) makes double-booking impossible (returns 409)

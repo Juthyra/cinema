@@ -7,6 +7,8 @@ export interface ShowtimeInfo {
   hallType: HallType;
   hallTypeLabel: string;
   startsAt: string; // ISO local datetime, e.g. 2026-11-17T17:30
+  seatsTotal: number;
+  seatsLeft: number;
 }
 
 export interface Movie {
