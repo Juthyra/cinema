@@ -17,6 +17,7 @@ import com.cinema.dto.Dtos.SeatInfo;
 import com.cinema.dto.Dtos.SeatMapDto;
 import com.cinema.dto.Dtos.SeatRef;
 import com.cinema.dto.Dtos.ShowtimeInfo;
+import com.cinema.dto.Dtos.TicketDto;
 import com.cinema.repository.MovieRepository;
 import com.cinema.repository.SeatReservationRepository;
 import com.cinema.repository.ShowtimeRepository;
@@ -26,11 +27,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +90,52 @@ public class CinemaService {
         return new SeatMapDto(showtimeId, showtime.getMovie().getTitle(), showtime.getHall(),
                 showtime.getStartsAt().format(ISO), type.name(), type.label(), type.description(),
                 layout.maxSeats(), layout.rows(), layout.seatsPerRow(), seats);
+    }
+
+    /**
+     * Tickets view: everything one customer booked, grouped per showtime.
+     * Upcoming showtimes first (soonest first), then past ones (most recent first).
+     */
+    @Transactional(readOnly = true)
+    public List<TicketDto> getTickets(String email) {
+        if (email == null || !email.contains("@")) {
+            throw badRequest("A valid email is required");
+        }
+        Map<Long, List<SeatReservation>> byShowtime = new LinkedHashMap<>();
+        for (SeatReservation r : reservations.findByCustomerEmailIgnoreCase(email.trim())) {
+            byShowtime.computeIfAbsent(r.getShowtime().getId(), k -> new ArrayList<>()).add(r);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        List<TicketDto> upcoming = new ArrayList<>();
+        List<TicketDto> past = new ArrayList<>();
+        for (List<SeatReservation> group : byShowtime.values()) {
+            SeatReservation first = group.get(0);
+            Showtime showtime = first.getShowtime();
+            Movie movie = showtime.getMovie();
+            List<String> seats = group.stream()
+                    .sorted(Comparator.comparing(SeatReservation::getSeatRow)
+                            .thenComparingInt(SeatReservation::getSeatNumber))
+                    .map(r -> r.getSeatRow() + r.getSeatNumber())
+                    .toList();
+            String bookedAt = group.stream()
+                    .map(SeatReservation::getCreatedAt)
+                    .min(Comparator.naturalOrder())
+                    .map(ISO::format)
+                    .orElse("");
+            long firstId = group.stream().mapToLong(SeatReservation::getId).min().orElse(0L);
+            TicketDto ticket = new TicketDto(
+                    "TKT-" + showtime.getId() + "-" + String.format("%04d", firstId),
+                    showtime.getId(), movie.getTitle(), movie.getGenre(), movie.getDurationMinutes(),
+                    showtime.getHall(), showtime.getHallType().name(), showtime.getHallType().label(),
+                    showtime.getStartsAt().format(ISO), seats, first.getCustomerName(),
+                    first.getCustomerEmail(), bookedAt, showtime.getStartsAt().isAfter(now));
+            (ticket.upcoming() ? upcoming : past).add(ticket);
+        }
+        upcoming.sort(Comparator.comparing(TicketDto::startsAt));
+        past.sort(Comparator.comparing(TicketDto::startsAt).reversed());
+        upcoming.addAll(past);
+        return upcoming;
     }
 
     @Transactional(readOnly = true)

@@ -37,6 +37,13 @@ public final class Dtos {
                                  String customerName, String customerEmail) {
     }
 
+    /** One customer's ticket: their seats for a single showtime, with a booking reference. */
+    public record TicketDto(String reference, Long showtimeId, String movieTitle, String genre,
+                            int durationMinutes, String hall, String hallType, String hallTypeLabel,
+                            String startsAt, List<String> seats, String customerName,
+                            String customerEmail, String bookedAt, boolean upcoming) {
+    }
+
     /** One booking group: seats booked by the same customer for the same showtime. */
     public record BookingGroupDto(Long showtimeId, String movieTitle, String hall, String startsAt,
                                   String customerName, String customerEmail, List<String> seats,

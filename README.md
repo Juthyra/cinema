@@ -17,6 +17,8 @@ paths are shown).
 
 - `GET  /api/movies` — movies with their showtimes
 - `GET  /api/showtimes/{id}/seats` — seat map (8 rows A–H × 10 seats, per showtime)
+- `GET  /api/tickets?email={email}` — one customer's own tickets, looked up by the
+  email they booked with; upcoming showtimes first, each with a booking reference
 - `POST /api/reservations` — book 1–4 seats, all-or-nothing; a DB unique
   constraint (`uk_showtime_seat`) makes double-booking impossible (returns 409)
 
@@ -290,7 +292,8 @@ cinema/
         ├── api.ts            (fetch calls)
         ├── types.ts
         ├── index.css
-        └── components/SeatMapView.tsx   (seat grid + booking form)
+        ├── components/SeatMapView.tsx   (seat grid + booking form)
+        └── components/TicketsView.tsx   (customer tickets, looked up by email)
 ```
 
 ## Troubleshooting

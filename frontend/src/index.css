@@ -374,3 +374,78 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
 /* Taken / selected always win over the kind tint */
 .seat.taken { background: var(--taken) !important; border-color: #5c2b31 !important; }
 .seat.selected { background: var(--accent) !important; border-color: var(--accent) !important; }
+
+/* ---- Customer tickets ---- */
+.tickets { display: flex; flex-direction: column; gap: 16px; }
+
+.tickets-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.tickets-form input {
+  flex: 1;
+  max-width: 380px;
+  background: var(--panel-2);
+  border: 1px solid #2c3650;
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 0.9rem;
+}
+.tickets-form input:focus { outline: none; border-color: var(--accent); }
+.tickets-form button {
+  background: var(--accent);
+  color: #1a1405;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.tickets-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ticket-list { display: flex; flex-direction: column; gap: 14px; }
+.ticket {
+  display: flex;
+  background: var(--panel);
+  border: 1px solid #232a3d;
+  border-radius: 14px;
+  overflow: hidden;
+}
+.ticket.past { opacity: 0.62; }
+
+.ticket-main { flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+.ticket-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ticket-top h3 { margin: 0; font-size: 1.15rem; }
+
+.ticket-badge {
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ticket-badge.up { background: #12261c; border: 1px solid #1f5c3b; color: #7fe0a8; }
+.ticket-badge.done { background: var(--panel-2); border: 1px solid #2c3650; color: var(--muted); }
+
+.ticket-when { margin: 0; font-size: 0.95rem; }
+
+.ticket-stub {
+  width: 220px;
+  flex-shrink: 0;
+  border-left: 2px dashed #2f3a52;
+  background: var(--panel-2);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+.ticket-ref { font-weight: 800; letter-spacing: 1px; color: var(--accent); font-size: 0.95rem; }
+.ticket-showtime { font-size: 0.95rem; }
+.ticket-email { word-break: break-all; }
+
+@media (max-width: 640px) {
+  .ticket { flex-direction: column; }
+  .ticket-stub { width: auto; border-left: none; border-top: 2px dashed #2f3a52; }
+}

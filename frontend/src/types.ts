@@ -58,6 +58,24 @@ export interface ReservationResult {
   customerEmail: string;
 }
 
+/** One customer's ticket: their seats for a single showtime, with a booking reference. */
+export interface Ticket {
+  reference: string;
+  showtimeId: number;
+  movieTitle: string;
+  genre: string;
+  durationMinutes: number;
+  hall: string;
+  hallType: HallType;
+  hallTypeLabel: string;
+  startsAt: string;
+  seats: string[];
+  customerName: string;
+  customerEmail: string;
+  bookedAt: string;
+  upcoming: boolean;
+}
+
 export interface BookingGroup {
   showtimeId: number;
   movieTitle: string;

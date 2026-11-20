@@ -6,6 +6,7 @@ import com.cinema.dto.Dtos.MovieDto;
 import com.cinema.dto.Dtos.ReservationDto;
 import com.cinema.dto.Dtos.ReserveRequest;
 import com.cinema.dto.Dtos.SeatMapDto;
+import com.cinema.dto.Dtos.TicketDto;
 import com.cinema.service.CinemaService;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -44,6 +46,12 @@ public class ApiController {
     @PostMapping("/reservations")
     public List<ReservationDto> reserve(@RequestBody ReserveRequest request) {
         return service.reserve(request);
+    }
+
+    /** A customer's own tickets, looked up by the email they booked with. */
+    @GetMapping("/tickets")
+    public List<TicketDto> tickets(@RequestParam(required = false) String email) {
+        return service.getTickets(email);
     }
 
     /** Admin: all bookings grouped by showtime + customer, with totals. */

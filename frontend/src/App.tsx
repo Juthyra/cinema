@@ -3,6 +3,7 @@ import { getMovies } from './api';
 import type { Movie, ShowtimeInfo } from './types';
 import SeatMapView from './components/SeatMapView';
 import AdminView from './components/AdminView';
+import TicketsView from './components/TicketsView';
 import { fmtDuration, fmtShowtime, GRADIENTS } from './lib/format';
 
 interface Selection {
@@ -15,7 +16,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selection, setSelection] = useState<Selection | null>(null);
-  const [view, setView] = useState<'movies' | 'admin'>('movies');
+  const [view, setView] = useState<'movies' | 'tickets' | 'admin'>('movies');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,6 +47,12 @@ export default function App() {
             onClick={() => setView('movies')}
           >
             Movies
+          </button>
+          <button
+            className={view === 'tickets' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setView('tickets')}
+          >
+            🎟 My Tickets
           </button>
           <button
             className={view === 'admin' ? 'nav-btn active' : 'nav-btn'}
@@ -98,6 +105,8 @@ export default function App() {
           ))}
         </main>
       )}
+
+      {view === 'tickets' && <TicketsView />}
 
       {view === 'admin' && <AdminView />}
 

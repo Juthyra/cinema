@@ -95,6 +95,12 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
           .sort()
           .join(', ')}. A confirmation would go to ${email.trim()}.`,
       );
+      // The tickets tab remembers this so the booking shows up without retyping.
+      try {
+        localStorage.setItem('cinema.customerEmail', email.trim());
+      } catch {
+        // storage unavailable (private mode) — the tickets tab still works by typing the email
+      }
       setSelected([]);
       getSeatMap(map.showtimeId).then(setMap);
     } catch (e) {

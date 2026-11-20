@@ -5,6 +5,7 @@ import type {
   ReservePayload,
   ReservationResult,
   SeatMap,
+  Ticket,
 } from './types';
 
 // Relative by default: the Vite dev server proxies /api to the backend.
@@ -42,6 +43,10 @@ export function reserveSeats(payload: ReservePayload): Promise<ReservationResult
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+export function getTickets(email: string): Promise<Ticket[]> {
+  return http<Ticket[]>(`/api/tickets?email=${encodeURIComponent(email)}`);
 }
 
 export function getAdminBookings(): Promise<AdminBookings> {
