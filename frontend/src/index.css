@@ -445,6 +445,21 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
 .ticket-showtime { font-size: 0.95rem; }
 .ticket-email { word-break: break-all; }
 
+.ticket-download {
+  margin-top: 8px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.ticket-download:hover { background: var(--accent); color: #1a1405; }
+.ticket-download:active { transform: translateY(1px); }
+
 @media (max-width: 640px) {
   .ticket { flex-direction: column; }
   .ticket-stub { width: auto; border-left: none; border-top: 2px dashed #2f3a52; }

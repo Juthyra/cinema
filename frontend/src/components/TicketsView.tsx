@@ -24,6 +24,7 @@ export default function TicketsView() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [lookedUp, setLookedUp] = useState('');
+  const [busyRef, setBusyRef] = useState<string | null>(null);
 
   const lookup = useCallback(async (value: string) => {
     const clean = value.trim();
@@ -50,6 +51,19 @@ export default function TicketsView() {
     const saved = rememberedEmail();
     if (saved.includes('@')) void lookup(saved);
   }, [lookup]);
+
+  /** Imported on demand: the PDF library is ~1 MB, no need to load it up front. */
+  async function savePdf(ticket: Ticket) {
+    setBusyRef(ticket.reference);
+    try {
+      const { downloadTicketPdf } = await import('../lib/ticketPdf');
+      downloadTicketPdf(ticket);
+    } catch (e) {
+      setError(`Could not build the PDF: ${(e as Error).message}`);
+    } finally {
+      setBusyRef(null);
+    }
+  }
 
   return (
     <section className="tickets">
@@ -118,6 +132,14 @@ export default function TicketsView() {
                     <span className="ticket-showtime">{fmtShowtime(t.startsAt)}</span>
                     <span className="muted">{t.customerName}</span>
                     <span className="muted ticket-email">{t.customerEmail}</span>
+                    <button
+                      className="ticket-download"
+                      onClick={() => void savePdf(t)}
+                      disabled={busyRef === t.reference}
+                      title="Download this ticket as a PDF"
+                    >
+                      {busyRef === t.reference ? 'Building…' : '⬇ Download PDF'}
+                    </button>
                   </div>
                 </article>
               ))}

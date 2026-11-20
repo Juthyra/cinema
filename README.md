@@ -293,7 +293,8 @@ cinema/
         ├── types.ts
         ├── index.css
         ├── components/SeatMapView.tsx   (seat grid + booking form)
-        └── components/TicketsView.tsx   (customer tickets, looked up by email)
+        ├── components/TicketsView.tsx   (customer tickets, looked up by email)
+        └── lib/ticketPdf.ts             (ticket PDF layout, jsPDF loaded on demand)
 ```
 
 ## Troubleshooting
