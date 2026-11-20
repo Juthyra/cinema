@@ -309,29 +309,10 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
 .mini-stat { color: var(--muted); font-size: 0.78rem; }
 .mini-stat b { color: var(--accent); font-size: 1rem; margin-right: 2px; }
 
-/* Screen 1: selected-movie detail panel */
-.movie-detail {
-  background: var(--panel);
-  border: 1px solid #232a3d;
-  border-radius: 12px;
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.movie-detail-head { display: flex; align-items: center; gap: 10px; }
-.movie-detail-head h2 { margin: 0; font-size: 1.15rem; }
-.movie-detail-head .close-btn {
-  margin-left: auto;
-  background: var(--panel-2);
-  border: 1px solid #2c3650;
-  color: var(--muted);
-  border-radius: 8px;
-  padding: 4px 10px;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-.movie-detail-head .close-btn:hover { color: var(--text); border-color: var(--accent); }
+/* Screen 1: the movie detail opens as a popup instead of under the grid */
+.admin-modal { width: min(920px, 100%); }
+.admin-modal .stats { margin: 14px 0 16px; }
+.admin-modal .empty-note { padding: 16px 2px 4px; }
 
 /* ---- Hall types ---- */
 .hall-desc { color: var(--muted); font-size: 0.82rem; margin: 0 0 12px; }
