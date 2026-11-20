@@ -42,16 +42,21 @@ public class SeatReservation {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    /** What the customer paid for this seat, in sen. Snapshotted so later price changes do not rewrite history. */
+    @Column(name = "price_sen", nullable = false, columnDefinition = "integer default 0")
+    private int priceSen;
+
     protected SeatReservation() {
     }
 
     public SeatReservation(Showtime showtime, String seatRow, int seatNumber,
-                           String customerName, String customerEmail) {
+                           String customerName, String customerEmail, int priceSen) {
         this.showtime = showtime;
         this.seatRow = seatRow;
         this.seatNumber = seatNumber;
         this.customerName = customerName;
         this.customerEmail = customerEmail;
+        this.priceSen = priceSen;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -62,4 +67,6 @@ public class SeatReservation {
     public String getCustomerName() { return customerName; }
     public String getCustomerEmail() { return customerEmail; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public int getPriceSen() { return priceSen; }
+    public void setPriceSen(int priceSen) { this.priceSen = priceSen; }
 }

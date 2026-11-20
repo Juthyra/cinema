@@ -26,6 +26,7 @@ export interface SeatInfo {
   kind: SeatKind;
   section: string;
   gapBefore: boolean; // aisle to the left of this seat
+  priceSen: number; // price in sen (1/100 ringgit)
 }
 
 export interface SeatMap {
@@ -56,6 +57,7 @@ export interface ReservationResult {
   seatNumber: number;
   customerName: string;
   customerEmail: string;
+  priceSen: number;
 }
 
 export interface BookingGroup {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getSeatMap, reserveSeats } from '../api';
 import type { SeatInfo, SeatKind, SeatMap, ShowtimeInfo } from '../types';
+import { fmtMoney } from '../lib/format';
 
 interface Props {
   movieTitle: string;
@@ -15,6 +16,15 @@ const KIND_NOTE: Record<SeatKind, string> = {
   RECLINER: 'premium recliners',
   SINGLE: 'single seats',
   ACCESSIBLE: 'wheelchair-accessible spaces',
+};
+
+const KIND_LABEL: Record<SeatKind, string> = {
+  STANDARD: 'Standard',
+  FAMILY: 'Family pod',
+  COUPLE: 'Love seat',
+  RECLINER: 'Recliner',
+  SINGLE: 'Single',
+  ACCESSIBLE: 'Accessible',
 };
 
 function fmtWhen(iso: string): string {
@@ -66,6 +76,14 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
 
   const maxSeats = map?.maxSeats ?? 4;
 
+  // Price per seat, and the running total of what is currently selected.
+  const priceBySeat = useMemo(() => {
+    const price = new Map<string, number>();
+    map?.seats.forEach((s) => price.set(`${s.row}${s.number}`, s.priceSen));
+    return price;
+  }, [map]);
+  const totalSen = selected.reduce((sum, key) => sum + (priceBySeat.get(key) ?? 0), 0);
+
   function toggle(key: string) {
     if (confirmed) return;
     setSelected((prev) => {
@@ -93,7 +111,7 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
         `Booked ${selected.length} seat${selected.length > 1 ? 's' : ''}: ${selected
           .slice()
           .sort()
-          .join(', ')}. A confirmation would go to ${email.trim()}.`,
+          .join(', ')} · ${fmtMoney(totalSen)}. A confirmation would go to ${email.trim()}.`,
       );
       setSelected([]);
       getSeatMap(map.showtimeId).then(setMap);
@@ -127,6 +145,14 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
         {map && (
           <>
             <p className="hall-desc">{map.hallDescription}</p>
+            <p className="price-legend">
+              {[...new Set(map.seats.map((s) => s.kind))].map((kind) => (
+                <span key={kind} className="price-item">
+                  {KIND_LABEL[kind]}{' '}
+                  <b>{fmtMoney(map.seats.find((s) => s.kind === kind)?.priceSen ?? 0)}</b>
+                </span>
+              ))}
+            </p>
             <div className="screen">SCREEN</div>
             <div className="legend">
               <span className="lg free">Available</span>
@@ -170,7 +196,7 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
                             title={
                               seat.taken && seat.customerName
                                 ? `Taken by ${seat.customerName}`
-                                : `${key}${hint}`
+                                : `${key}${hint} · ${fmtMoney(seat.priceSen)}`
                             }
                             disabled={seat.taken}
                             onClick={() => toggle(key)}
@@ -214,11 +240,15 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
                   {booking
                     ? 'Booking…'
                     : selected.length > 0
-                      ? `Book ${selected.length} seat${selected.length > 1 ? 's' : ''} (max ${maxSeats})`
+                      ? `Book ${selected.length} seat${selected.length > 1 ? 's' : ''} · ${fmtMoney(totalSen)}`
                       : `Pick up to ${maxSeats} seats`}
                 </button>
                 <span className="hint">
-                  {selected.length === maxSeats && 'Max seats reached — deselect one to change.'}
+                  {selected.length === maxSeats
+                    ? `Max ${maxSeats} seats reached — deselect one to change.`
+                    : selected.length > 0
+                      ? `Total ${fmtMoney(totalSen)} for ${selected.length} seat${selected.length > 1 ? 's' : ''}`
+                      : `Max ${maxSeats} seats per booking`}
                 </span>
               </div>
             </div>

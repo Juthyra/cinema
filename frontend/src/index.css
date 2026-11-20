@@ -335,6 +335,10 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
 
 /* ---- Hall types ---- */
 .hall-desc { color: var(--muted); font-size: 0.82rem; margin: 0 0 12px; }
+
+/* Prices for the seat kinds in this hall */
+.price-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 14px; font-size: 0.75rem; color: var(--muted); }
+.price-item b { color: var(--accent); font-size: 0.8rem; }
 .section-title {
   margin: 12px 0 6px;
   padding-top: 8px;
