@@ -53,15 +53,25 @@ public class CinemaService {
 
     @Transactional(readOnly = true)
     public List<MovieDto> getMovies() {
+        // One query for every showtime's taken-seat count, instead of one query per showtime.
+        Map<Long, Long> takenByShowtime = new HashMap<>();
+        for (SeatReservationRepository.SeatsTaken row : reservations.countSeatsTakenByShowtime()) {
+            takenByShowtime.put(row.getShowtimeId(), row.getTaken());
+        }
+
         List<Movie> all = movies.findAll();
         all.sort(Comparator.comparing(Movie::getTitle, String.CASE_INSENSITIVE_ORDER));
         List<MovieDto> result = new ArrayList<>();
         for (Movie movie : all) {
             List<ShowtimeInfo> infos = movie.getShowtimes().stream()
                     .sorted(Comparator.comparing(Showtime::getStartsAt))
-                    .map(s -> new ShowtimeInfo(s.getId(), s.getHall(),
-                            s.getHallType().name(), s.getHallType().label(),
-                            s.getStartsAt().format(ISO)))
+                    .map(s -> {
+                        int total = HallLayouts.of(s.getHallType()).seats().size();
+                        int taken = takenByShowtime.getOrDefault(s.getId(), 0L).intValue();
+                        return new ShowtimeInfo(s.getId(), s.getHall(),
+                                s.getHallType().name(), s.getHallType().label(),
+                                s.getStartsAt().format(ISO), total, Math.max(total - taken, 0));
+                    })
                     .toList();
             result.add(new MovieDto(movie.getId(), movie.getTitle(), movie.getGenre(),
                     movie.getDurationMinutes(), movie.getDescription(), infos));

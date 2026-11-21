@@ -80,18 +80,35 @@ export default function App() {
                 <p className="muted">{fmtDuration(movie.durationMinutes)}</p>
                 <p className="description">{movie.description}</p>
                 <div className="showtimes">
-                  {movie.showtimes.map((st) => (
-                    <button
-                      key={st.id}
-                      className="showtime"
-                      onClick={() => setSelection({ movie, showtime: st })}
-                    >
-                      {fmtShowtime(st.startsAt)}
-                      <small>
-                        {st.hall} · {st.hallTypeLabel}
-                      </small>
-                    </button>
-                  ))}
+                  {movie.showtimes.map((st) => {
+                    const soldOut = st.seatsLeft === 0;
+                    const low = !soldOut && st.seatsTotal > 0 && st.seatsLeft / st.seatsTotal <= 0.25;
+                    return (
+                      <button
+                        key={st.id}
+                        className={soldOut ? 'showtime sold-out' : 'showtime'}
+                        onClick={() => setSelection({ movie, showtime: st })}
+                        disabled={soldOut}
+                        title={
+                          soldOut
+                            ? 'This showtime is full'
+                            : `${st.seatsLeft} of ${st.seatsTotal} seats free`
+                        }
+                      >
+                        {fmtShowtime(st.startsAt)}
+                        <small>
+                          {st.hall} · {st.hallTypeLabel}
+                        </small>
+                        <span
+                          className={
+                            soldOut ? 'seats-left none' : low ? 'seats-left low' : 'seats-left'
+                          }
+                        >
+                          {soldOut ? 'Sold out' : `${st.seatsLeft} left`}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </article>
