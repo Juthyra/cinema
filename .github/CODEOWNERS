@@ -1,0 +1,3 @@
+# Code owners are auto-requested for review (and emailed) on every new PR.
+# Listed users need write access to the repo. The PR author is never requested.
+* @Juthyra @FahmiSaha
