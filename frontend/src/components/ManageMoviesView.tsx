@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { createMovie, deleteMovie, getAdminMovies, updateMovie } from '../api';
 import type { AdminMovieStats, MovieInput } from '../types';
 import { genresInUse } from '../lib/genres';
+import { fmtDuration } from '../lib/format';
 import Dropdown from './Dropdown';
+import NumberStepper from './NumberStepper';
 
 const BLANK: MovieInput = { title: '', genre: '', durationMinutes: 90, description: '' };
 
@@ -130,14 +132,14 @@ export default function ManageMoviesView({ onChanged }: { onChanged: () => void 
             placeholder="— pick a genre —"
             label="Genre"
           />
-          <input
-            className="duration-input"
-            type="number"
+          <NumberStepper
+            value={form.durationMinutes}
+            onChange={(durationMinutes) => setForm({ ...form, durationMinutes })}
             min={1}
             max={600}
-            title="Duration in minutes"
-            value={form.durationMinutes}
-            onChange={(e) => setForm({ ...form, durationMinutes: Number(e.target.value) })}
+            step={5}
+            hint={fmtDuration(form.durationMinutes)}
+            label="Duration in minutes"
           />
         </div>
 

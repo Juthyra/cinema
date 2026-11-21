@@ -290,6 +290,60 @@ body {
 .dropdown-tick { font-size: 0.8rem; }
 .dropdown-empty { padding: 10px; color: var(--muted); font-size: 0.85rem; }
 
+/* Number field with - / + buttons (components/NumberStepper.tsx).
+   A native <input type="number"> draws the browser's own spinner arrows, which
+   are what make a number field look like a form from 2000. */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 190px;
+  background: var(--panel-2);
+  border: 1px solid #2c3650;
+  border-radius: 8px;
+  padding: 2px;
+  transition: border-color 0.15s ease;
+}
+.stepper:focus-within { border-color: var(--accent); }
+.stepper-btn {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.stepper-btn:hover:not(:disabled) { background: #243050; color: var(--accent); }
+.stepper-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+/* Two classes deep so it wins over the generic `.form input` rule above. */
+.stepper .stepper-input {
+  flex: 0 0 46px;
+  width: 46px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.stepper .stepper-input:focus { outline: none; border-color: transparent; }
+.stepper-hint {
+  flex: 1;
+  color: var(--muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  padding-right: 6px;
+}
+
 .actions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
 .actions .hint { color: var(--muted); font-size: 0.8rem; }
 
@@ -406,7 +460,6 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
   resize: vertical;
 }
 .form textarea:focus { outline: none; border-color: var(--accent); }
-.form .duration-input { flex: 0 0 110px; }
 .manage-table { margin-top: 16px; }
 .manage .notice { margin-top: 12px; }
 .row-actions { display: inline-flex; gap: 6px; }
