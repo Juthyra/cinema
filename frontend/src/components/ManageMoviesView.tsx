@@ -1,6 +1,7 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { createMovie, deleteMovie, getAdminMovies, updateMovie } from '../api';
 import type { AdminMovieStats, MovieInput } from '../types';
+import { genresInUse } from '../lib/genres';
 
 const BLANK: MovieInput = { title: '', genre: '', durationMinutes: 90, description: '' };
 
@@ -18,6 +19,13 @@ export default function ManageMoviesView({ onChanged }: { onChanged: () => void 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+
+  // Standard film genres, plus anything already stored, so an older movie's
+  // genre is never silently rewritten just because the list moved on.
+  const genreOptions = useMemo(
+    () => genresInUse((movies ?? []).map((m) => m.genre)),
+    [movies],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -114,12 +122,19 @@ export default function ManageMoviesView({ onChanged }: { onChanged: () => void 
             maxLength={120}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
-          <input
-            placeholder="Genre"
+          <select
+            className="genre-select"
+            title="Genre"
             value={form.genre}
-            maxLength={60}
             onChange={(e) => setForm({ ...form, genre: e.target.value })}
-          />
+          >
+            <option value="">— pick a genre —</option>
+            {genreOptions.map((genre) => (
+              <option key={genre} value={genre}>
+                {genre}
+              </option>
+            ))}
+          </select>
           <input
             className="duration-input"
             type="number"
