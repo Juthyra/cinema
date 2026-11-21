@@ -87,6 +87,13 @@ body {
 }
 .showtime:hover { background: #243050; }
 .showtime small { color: var(--muted); font-size: 0.72rem; }
+.showtime.sold-out { opacity: 0.5; cursor: not-allowed; }
+.showtime.sold-out:hover { background: var(--panel-2); }
+
+/* Seats left on a showtime button */
+.seats-left { font-size: 0.7rem; font-weight: 700; color: #7fe0a8; }
+.seats-left.low { color: var(--accent); }
+.seats-left.none { color: #ffb3b5; }
 
 .banner {
   display: flex;

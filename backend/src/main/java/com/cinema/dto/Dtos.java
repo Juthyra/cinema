@@ -9,7 +9,7 @@ import java.util.List;
 public final class Dtos {
 
     public record ShowtimeInfo(Long id, String hall, String hallType, String hallTypeLabel,
-                               String startsAt) {
+                               String startsAt, int seatsTotal, int seatsLeft) {
     }
 
     public record MovieDto(Long id, String title, String genre, int durationMinutes,
