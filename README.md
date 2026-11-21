@@ -20,6 +20,30 @@ paths are shown).
 - `POST /api/reservations` — book 1–4 seats, all-or-nothing; a DB unique
   constraint (`uk_showtime_seat`) makes double-booking impossible (returns 409)
 
+### Admin
+
+The admin screens read and write through these endpoints:
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/api/admin/bookings` | every booking grouped by showtime + customer, with totals |
+| `GET` | `/api/admin/movies` | per-movie booking stats and customer lists |
+| `POST` | `/api/admin/movies` | add a movie (201) |
+| `PUT` | `/api/admin/movies/{id}` | edit a movie |
+| `DELETE` | `/api/admin/movies/{id}` | delete a movie (204) |
+
+Movies are no longer seed-only: the **Manage movies** screen adds, edits and
+deletes them. Two rules are enforced on the server, not only in the UI:
+
+| Rule | Response |
+|------|----------|
+| Title already used (compared case-insensitively) | 409 `A movie called "X" already exists` |
+| Delete a movie that still has booked seats | 409 `This movie has N booked seats - cancel those bookings before deleting it` |
+
+Deleting is refused while any seat is booked for the movie: its showtimes (and
+with them the customers' tickets) would go too. Field checks — title, genre,
+duration 1–600 minutes, description ≤ 500 characters — answer 400.
+
 ### Hall types
 
 Each showtime has a hall type that decides the seat layout (`HallType` +

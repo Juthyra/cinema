@@ -11,6 +11,7 @@ import com.cinema.dto.Dtos.AdminTotals;
 import com.cinema.dto.Dtos.BookingGroupDto;
 import com.cinema.dto.Dtos.MovieCustomerDto;
 import com.cinema.dto.Dtos.MovieDto;
+import com.cinema.dto.Dtos.MovieRequest;
 import com.cinema.dto.Dtos.ReservationDto;
 import com.cinema.dto.Dtos.ReserveRequest;
 import com.cinema.dto.Dtos.SeatInfo;
@@ -201,6 +202,95 @@ public class CinemaService {
                 .map(r -> new ReservationDto(r.getId(), request.showtimeId(), r.getSeatRow(),
                         r.getSeatNumber(), r.getCustomerName(), r.getCustomerEmail()))
                 .toList();
+    }
+
+    /** Admin: add a movie. Titles are unique, case-insensitively. */
+    @Transactional
+    public MovieDto createMovie(MovieRequest request) {
+        String title = validateMovie(request);
+        if (movies.findByTitleIgnoreCase(title).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "A movie called \"" + title + "\" already exists");
+        }
+        Movie movie = new Movie(title, trimmed(request.description()), request.genre().trim(),
+                request.durationMinutes());
+        movies.save(movie);
+        return toMovieDto(movie);
+    }
+
+    /** Admin: edit a movie. Its showtimes and bookings are left alone. */
+    @Transactional
+    public MovieDto updateMovie(Long id, MovieRequest request) {
+        Movie movie = movies.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Movie not found"));
+        String title = validateMovie(request);
+        movies.findByTitleIgnoreCase(title)
+                .filter(other -> !other.getId().equals(id))
+                .ifPresent(other -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "A movie called \"" + title + "\" already exists");
+                });
+        movie.setTitle(title);
+        movie.setGenre(request.genre().trim());
+        movie.setDurationMinutes(request.durationMinutes());
+        movie.setDescription(trimmed(request.description()));
+        movies.save(movie);
+        return toMovieDto(movie);
+    }
+
+    /**
+     * Admin: delete a movie. Refused while any seat is booked for it - the showtimes
+     * would go with it, and a customer's ticket must not disappear underneath them.
+     */
+    @Transactional
+    public void deleteMovie(Long id) {
+        Movie movie = movies.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Movie not found"));
+        long booked = reservations.countByShowtimeMovieId(id);
+        if (booked > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "This movie has " + booked
+                    + " booked seat" + (booked == 1 ? "" : "s")
+                    + " - cancel those bookings before deleting it");
+        }
+        movies.delete(movie);
+    }
+
+    /** Checks shared by create and edit; returns the trimmed title. */
+    private String validateMovie(MovieRequest request) {
+        if (request.title() == null || request.title().isBlank()) {
+            throw badRequest("Title is required");
+        }
+        String title = request.title().trim();
+        if (title.length() > 120) {
+            throw badRequest("Title must be 120 characters or fewer");
+        }
+        if (request.genre() == null || request.genre().isBlank()) {
+            throw badRequest("Genre is required");
+        }
+        if (request.genre().trim().length() > 60) {
+            throw badRequest("Genre must be 60 characters or fewer");
+        }
+        if (request.durationMinutes() <= 0 || request.durationMinutes() > 600) {
+            throw badRequest("Duration must be between 1 and 600 minutes");
+        }
+        if (trimmed(request.description()).length() > 500) {
+            throw badRequest("Description must be 500 characters or fewer");
+        }
+        return title;
+    }
+
+    private static String trimmed(String value) {
+        return value == null ? "" : value.trim();
+    }
+
+    private static MovieDto toMovieDto(Movie movie) {
+        List<ShowtimeInfo> infos = movie.getShowtimes().stream()
+                .sorted(Comparator.comparing(Showtime::getStartsAt))
+                .map(s -> new ShowtimeInfo(s.getId(), s.getHall(), s.getHallType().name(),
+                        s.getHallType().label(), s.getStartsAt().format(ISO)))
+                .toList();
+        return new MovieDto(movie.getId(), movie.getTitle(), movie.getGenre(),
+                movie.getDurationMinutes(), movie.getDescription(), infos);
     }
 
     private Showtime findShowtime(Long showtimeId) {

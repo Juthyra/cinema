@@ -1,17 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getAdminBookings, getAdminMovies } from '../api';
 import type { AdminBookings, AdminMovies } from '../types';
 import { fmtDuration, fmtShowtime, fmtWhen, GRADIENTS } from '../lib/format';
+import ManageMoviesView from './ManageMoviesView';
 
 /**
  * Admin view.
  * - Dashboard cards (totals) stay on top.
  * - A switcher picks the screen:
- *   "By movie"     = movie grid (same layout as the movies tab); clicking a
- *                    movie shows its booking stats + customer list.
- *   "All bookings" = the full bookings table.
+ *   "By movie"      = movie grid (same layout as the movies tab); clicking a
+ *                     movie shows its booking stats + customer list.
+ *   "All bookings"  = the full bookings table.
+ *   "Manage movies" = add, edit and delete movies.
  */
-type Mode = 'movies' | 'bookings';
+type Mode = 'movies' | 'bookings' | 'manage';
 
 export default function AdminView() {
   const [bookings, setBookings] = useState<AdminBookings | null>(null);
@@ -21,23 +23,19 @@ export default function AdminView() {
   const [mode, setMode] = useState<Mode>('movies');
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const load = useCallback(() => {
     Promise.all([getAdminBookings(), getAdminMovies()])
       .then(([b, m]) => {
-        if (!cancelled) {
-          setBookings(b);
-          setMovies(m);
-          setError(null);
-        }
+        setBookings(b);
+        setMovies(m);
+        setError(null);
       })
-      .catch((e) => {
-        if (!cancelled) setError((e as Error).message);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch((e) => setError((e as Error).message));
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const filtered = useMemo(() => {
     if (!bookings) return [];
@@ -86,6 +84,12 @@ export default function AdminView() {
           onClick={() => setMode('bookings')}
         >
           📋 All bookings
+        </button>
+        <button
+          className={mode === 'manage' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setMode('manage')}
+        >
+          🛠 Manage movies
         </button>
       </div>
 
@@ -258,6 +262,8 @@ export default function AdminView() {
             </div>
           </>
         ))}
+
+      {mode === 'manage' && <ManageMoviesView onChanged={load} />}
     </section>
   );
 }

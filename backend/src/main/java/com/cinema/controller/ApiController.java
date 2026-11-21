@@ -3,16 +3,21 @@ package com.cinema.controller;
 import com.cinema.dto.Dtos.AdminBookingsDto;
 import com.cinema.dto.Dtos.AdminMoviesDto;
 import com.cinema.dto.Dtos.MovieDto;
+import com.cinema.dto.Dtos.MovieRequest;
 import com.cinema.dto.Dtos.ReservationDto;
 import com.cinema.dto.Dtos.ReserveRequest;
 import com.cinema.dto.Dtos.SeatMapDto;
 import com.cinema.service.CinemaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -50,6 +55,26 @@ public class ApiController {
     @GetMapping("/admin/bookings")
     public AdminBookingsDto adminBookings() {
         return service.getAdminBookings();
+    }
+
+    /** Admin: add a movie. */
+    @PostMapping("/admin/movies")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MovieDto createMovie(@RequestBody MovieRequest request) {
+        return service.createMovie(request);
+    }
+
+    /** Admin: edit a movie. */
+    @PutMapping("/admin/movies/{id}")
+    public MovieDto updateMovie(@PathVariable Long id, @RequestBody MovieRequest request) {
+        return service.updateMovie(id, request);
+    }
+
+    /** Admin: delete a movie - only allowed while nothing is booked for it. */
+    @DeleteMapping("/admin/movies/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteMovie(@PathVariable Long id) {
+        service.deleteMovie(id);
     }
 
     /** Admin: per-movie booking stats + customer lists. */

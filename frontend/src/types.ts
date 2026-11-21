@@ -18,6 +18,14 @@ export interface Movie {
   showtimes: ShowtimeInfo[];
 }
 
+/** The fields the admin fills in when adding or editing a movie. */
+export interface MovieInput {
+  title: string;
+  genre: string;
+  durationMinutes: number;
+  description: string;
+}
+
 export interface SeatInfo {
   row: string;
   number: number;

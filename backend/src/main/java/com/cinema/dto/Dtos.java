@@ -16,6 +16,10 @@ public final class Dtos {
                            String description, List<ShowtimeInfo> showtimes) {
     }
 
+    /** Admin: the fields of a movie that can be created or edited. */
+    public record MovieRequest(String title, String genre, int durationMinutes, String description) {
+    }
+
     /** kind: STANDARD, FAMILY, COUPLE, RECLINER, SINGLE or ACCESSIBLE. gapBefore = aisle to its left. */
     public record SeatInfo(String row, int number, boolean taken, String customerName,
                            String kind, String section, boolean gapBefore) {

@@ -2,6 +2,7 @@ import type {
   AdminBookings,
   AdminMovies,
   Movie,
+  MovieInput,
   ReservePayload,
   ReservationResult,
   SeatMap,
@@ -26,6 +27,8 @@ async function http<T>(path: string, init?: RequestInit): Promise<T> {
     }
     throw new Error(message);
   }
+  // 204 No Content (a successful DELETE) has no body to parse.
+  if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
 
@@ -50,4 +53,19 @@ export function getAdminBookings(): Promise<AdminBookings> {
 
 export function getAdminMovies(): Promise<AdminMovies> {
   return http<AdminMovies>('/api/admin/movies');
+}
+
+// Admin movie management. The backend refuses a duplicate title (409) and
+// refuses to delete a movie that still has booked seats (409).
+
+export function createMovie(input: MovieInput): Promise<Movie> {
+  return http<Movie>('/api/admin/movies', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function updateMovie(id: number, input: MovieInput): Promise<Movie> {
+  return http<Movie>(`/api/admin/movies/${id}`, { method: 'PUT', body: JSON.stringify(input) });
+}
+
+export function deleteMovie(id: number): Promise<void> {
+  return http<void>(`/api/admin/movies/${id}`, { method: 'DELETE' });
 }

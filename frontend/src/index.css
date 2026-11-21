@@ -287,6 +287,47 @@ table.bookings .email { color: var(--muted); }
 table.bookings .count { font-weight: 700; color: var(--accent); }
 table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; }
 
+/* Admin: movie management (add / edit / delete) */
+.manage { display: flex; flex-direction: column; gap: 4px; }
+.manage-form {
+  background: var(--panel);
+  border: 1px solid #232a3d;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-top: 0;
+}
+.manage-head { margin: 0; font-size: 0.95rem; color: var(--accent); }
+.form textarea {
+  flex: 1;
+  background: var(--panel-2);
+  border: 1px solid #2c3650;
+  border-radius: 8px;
+  color: var(--text);
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+}
+.form textarea:focus { outline: none; border-color: var(--accent); }
+.form .duration-input { flex: 0 0 110px; }
+.manage-table { margin-top: 16px; }
+.manage .notice { margin-top: 12px; }
+.row-actions { display: inline-flex; gap: 6px; }
+.btn-sm {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid #2c3650;
+  border-radius: 7px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.btn-sm:hover { background: #243050; }
+.btn-sm.danger { border-color: #57272e; color: #ffb3b5; }
+.btn-sm.danger:hover { background: #2a1a1e; }
+.chip.locked { background: #2a1a1e; color: #ffb3b5; margin-left: 8px; font-size: 0.68rem; }
+table.bookings tr.editing { background: #1b2233; }
+
 .seat-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
 .seat-tag {
   background: var(--panel-2);
