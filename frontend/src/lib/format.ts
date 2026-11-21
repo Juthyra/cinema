@@ -30,3 +30,8 @@ export function fmtWhen(iso: string): string {
   const d = new Date(iso);
   return `${d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}, ${d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
 }
+
+/** Malaysian ringgit from sen, e.g. 1800 -> "RM18.00". */
+export function fmtMoney(sen: number): string {
+  return `RM${(sen / 100).toFixed(2)}`;
+}

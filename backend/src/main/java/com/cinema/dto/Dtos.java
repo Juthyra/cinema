@@ -18,7 +18,7 @@ public final class Dtos {
 
     /** kind: STANDARD, FAMILY, COUPLE, RECLINER, SINGLE or ACCESSIBLE. gapBefore = aisle to its left. */
     public record SeatInfo(String row, int number, boolean taken, String customerName,
-                           String kind, String section, boolean gapBefore) {
+                           String kind, String section, boolean gapBefore, int priceSen) {
     }
 
     public record SeatMapDto(Long showtimeId, String movieTitle, String hall, String startsAt,
@@ -34,7 +34,7 @@ public final class Dtos {
     }
 
     public record ReservationDto(Long id, Long showtimeId, String row, int seatNumber,
-                                 String customerName, String customerEmail) {
+                                 String customerName, String customerEmail, int priceSen) {
     }
 
     /** One booking group: seats booked by the same customer for the same showtime. */
