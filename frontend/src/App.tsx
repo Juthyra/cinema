@@ -3,6 +3,7 @@ import { getMovies } from './api';
 import type { Movie, ShowtimeInfo } from './types';
 import SeatMapView from './components/SeatMapView';
 import AdminView from './components/AdminView';
+import Poster from './components/Poster';
 import { fmtDuration, fmtShowtime, GRADIENTS } from './lib/format';
 
 interface Selection {
@@ -69,9 +70,11 @@ export default function App() {
         <main className="grid">
           {movies.map((movie, i) => (
             <article key={movie.id} className="card">
-              <div className="poster" style={{ background: GRADIENTS[i % GRADIENTS.length] }}>
-                <span>{movie.title.slice(0, 2)}</span>
-              </div>
+              <Poster
+                title={movie.title}
+                posterUrl={movie.posterUrl}
+                gradient={GRADIENTS[i % GRADIENTS.length]}
+              />
               <div className="card-body">
                 <div className="card-top">
                   <h2>{movie.title}</h2>

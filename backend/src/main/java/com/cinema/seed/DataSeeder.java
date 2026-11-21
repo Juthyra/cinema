@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Seeds a small demo catalogue on first start (when the movies table is empty).
@@ -32,6 +33,7 @@ public class DataSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         backfillHallTypes();
+        backfillPosters();
         if (movies.count() > 0) {
             return;
         }
@@ -55,6 +57,7 @@ public class DataSeeder implements CommandLineRunner {
 
         for (int i = 0; i < catalog.size(); i++) {
             Movie movie = catalog.get(i);
+            movie.setPosterUrl(POSTERS.get(movie.getTitle()));
             for (int k = 0; k < 2; k++) {
                 int slotIndex = (i * 2 + k) % slots.length;
                 LocalDateTime base = slots[slotIndex];
@@ -76,6 +79,31 @@ public class DataSeeder implements CommandLineRunner {
                     showtimes.save(s);
                 });
     }
+
+    /**
+     * Posters were added to a catalogue that usually already exists, so fill in the demo
+     * ones on start. A poster that is already set is left alone - it may have been chosen
+     * by hand.
+     */
+    private void backfillPosters() {
+        for (Movie movie : movies.findAll()) {
+            if (movie.getPosterUrl() == null) {
+                String poster = POSTERS.get(movie.getTitle());
+                if (poster != null) {
+                    movie.setPosterUrl(poster);
+                    movies.save(movie);
+                }
+            }
+        }
+    }
+
+    /** Demo posters, keyed by title: a stable random photo per film. Swap for your own URLs. */
+    private static final Map<String, String> POSTERS = Map.of(
+            "The Midnight Circuit", "https://picsum.photos/seed/midnight-circuit/300/450",
+            "Paper Moons", "https://picsum.photos/seed/paper-moons/300/450",
+            "Steel Harvest", "https://picsum.photos/seed/steel-harvest/300/450",
+            "A Quiet Orbit", "https://picsum.photos/seed/quiet-orbit/300/450",
+            "Laughing in Orbit", "https://picsum.photos/seed/laughing-in-orbit/300/450");
 
     private static LocalDateTime at(LocalDate day, int hour, int minute) {
         return day.atTime(hour, minute);

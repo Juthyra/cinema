@@ -13,7 +13,7 @@ public final class Dtos {
     }
 
     public record MovieDto(Long id, String title, String genre, int durationMinutes,
-                           String description, List<ShowtimeInfo> showtimes) {
+                           String description, String posterUrl, List<ShowtimeInfo> showtimes) {
     }
 
     /** kind: STANDARD, FAMILY, COUPLE, RECLINER, SINGLE or ACCESSIBLE. gapBefore = aisle to its left. */

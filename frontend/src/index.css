@@ -55,6 +55,14 @@ body {
   letter-spacing: 4px;
 }
 
+/* The same box, filled by the film's own image instead of its initials. */
+img.poster {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+  background: #0d1220;
+}
+
 .card-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .card-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .card-top h2 { margin: 0; font-size: 1.15rem; }

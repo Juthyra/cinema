@@ -15,7 +15,9 @@ paths are shown).
 
 ## What it does
 
-- `GET  /api/movies` — movies with their showtimes
+- `GET  /api/movies` — movies with their showtimes; each movie also carries an optional
+  `posterUrl` for its card (a film without one, or one whose image fails to load, falls
+  back to the coloured initials tile)
 - `GET  /api/showtimes/{id}/seats` — seat map (8 rows A–H × 10 seats, per showtime)
 - `POST /api/reservations` — book 1–4 seats, all-or-nothing; a DB unique
   constraint (`uk_showtime_seat`) makes double-booking impossible (returns 409)

@@ -64,7 +64,7 @@ public class CinemaService {
                             s.getStartsAt().format(ISO)))
                     .toList();
             result.add(new MovieDto(movie.getId(), movie.getTitle(), movie.getGenre(),
-                    movie.getDurationMinutes(), movie.getDescription(), infos));
+                    movie.getDurationMinutes(), movie.getDescription(), movie.getPosterUrl(), infos));
         }
         return result;
     }
