@@ -17,8 +17,10 @@ export default function App() {
   const [selection, setSelection] = useState<Selection | null>(null);
   const [view, setView] = useState<'movies' | 'admin'>('movies');
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // silent = refetch without the "Loading the program…" flash, for a refresh
+  // triggered by an edit (adding a movie in the admin) rather than by opening the app.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       setMovies(await getMovies());
       setError(null);
@@ -27,7 +29,7 @@ export default function App() {
         `${(e as Error).message} — is the Spring Boot backend running on http://localhost:8080 ?`,
       );
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -61,7 +63,7 @@ export default function App() {
       {error && (
         <div className="banner error">
           <span>{error}</span>
-          <button onClick={load}>Retry</button>
+          <button onClick={() => load()}>Retry</button>
         </div>
       )}
 
@@ -99,7 +101,7 @@ export default function App() {
         </main>
       )}
 
-      {view === 'admin' && <AdminView />}
+      {view === 'admin' && <AdminView onMoviesChanged={() => load(true)} />}
 
       {selection && (
         <SeatMapView

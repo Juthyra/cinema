@@ -15,7 +15,7 @@ import ManageMoviesView from './ManageMoviesView';
  */
 type Mode = 'movies' | 'bookings' | 'manage';
 
-export default function AdminView() {
+export default function AdminView({ onMoviesChanged }: { onMoviesChanged?: () => void }) {
   const [bookings, setBookings] = useState<AdminBookings | null>(null);
   const [movies, setMovies] = useState<AdminMovies | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +36,14 @@ export default function AdminView() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // A movie added/edited/deleted here changes the list the Movies tab shows, so
+  // refresh this screen's own data and tell the app above us to refresh too -
+  // otherwise the new movie only appears after a manual reload.
+  function afterMovieChange() {
+    load();
+    onMoviesChanged?.();
+  }
 
   const filtered = useMemo(() => {
     if (!bookings) return [];
@@ -263,7 +271,7 @@ export default function AdminView() {
           </>
         ))}
 
-      {mode === 'manage' && <ManageMoviesView onChanged={load} />}
+      {mode === 'manage' && <ManageMoviesView onChanged={afterMovieChange} />}
     </section>
   );
 }
