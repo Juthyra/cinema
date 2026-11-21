@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { createMovie, deleteMovie, getAdminMovies, updateMovie } from '../api';
 import type { AdminMovieStats, MovieInput } from '../types';
 import { genresInUse } from '../lib/genres';
+import Dropdown from './Dropdown';
 
 const BLANK: MovieInput = { title: '', genre: '', durationMinutes: 90, description: '' };
 
@@ -122,19 +123,13 @@ export default function ManageMoviesView({ onChanged }: { onChanged: () => void 
             maxLength={120}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
           />
-          <select
-            className="genre-select"
-            title="Genre"
+          <Dropdown
+            options={genreOptions}
             value={form.genre}
-            onChange={(e) => setForm({ ...form, genre: e.target.value })}
-          >
-            <option value="">— pick a genre —</option>
-            {genreOptions.map((genre) => (
-              <option key={genre} value={genre}>
-                {genre}
-              </option>
-            ))}
-          </select>
+            onChange={(genre) => setForm({ ...form, genre })}
+            placeholder="— pick a genre —"
+            label="Genre"
+          />
           <input
             className="duration-input"
             type="number"
