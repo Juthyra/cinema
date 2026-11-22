@@ -24,7 +24,6 @@ export interface SeatInfo {
   row: string;
   number: number;
   taken: boolean;
-  customerName: string | null;
   kind: SeatKind;
   section: string;
   gapBefore: boolean; // aisle to the left of this seat

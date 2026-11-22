@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getAdminBookings, getAdminMovies } from '../api';
 import type { AdminBookings, AdminMovies } from '../types';
 import { fmtDuration, fmtShowtime, fmtWhen, GRADIENTS } from '../lib/format';
+import Dialog from './Dialog';
 
 /**
  * Admin view.
@@ -38,16 +39,6 @@ export default function AdminView() {
       cancelled = true;
     };
   }, []);
-
-  // Esc closes the movie popup.
-  useEffect(() => {
-    if (selectedId === null) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setSelectedId(null);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId]);
 
   const filtered = useMemo(() => {
     if (!bookings) return [];
@@ -111,7 +102,17 @@ export default function AdminView() {
                   className={
                     m.movieId === selectedId ? 'card selectable selected' : 'card selectable'
                   }
-                  onClick={() => setSelectedId(m.movieId === selectedId ? null : m.movieId)}
+                  role="button"
+                  tabIndex={0}
+                  aria-haspopup="dialog"
+                  aria-label={`${m.title}: show bookings`}
+                  onClick={() => setSelectedId(m.movieId)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedId(m.movieId);
+                    }
+                  }}
                 >
                   <div className="poster" style={{ background: GRADIENTS[i % GRADIENTS.length] }}>
                     <span>{m.title.slice(0, 2)}</span>
@@ -140,29 +141,12 @@ export default function AdminView() {
             </main>
 
             {selected && (
-              <div className="overlay" onClick={() => setSelectedId(null)}>
-                <div
-                  className="modal admin-modal"
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label={`${selected.title} bookings`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="modal-head">
-                    <div>
-                      <h2>{selected.title}</h2>
-                      <p className="sub">
-                        {selected.genre} · {fmtDuration(selected.durationMinutes)}
-                      </p>
-                    </div>
-                    <button
-                      className="close"
-                      onClick={() => setSelectedId(null)}
-                      aria-label="Close"
-                    >
-                      ×
-                    </button>
-                  </div>
+              <Dialog
+                title={selected.title}
+                subtitle={`${selected.genre} · ${fmtDuration(selected.durationMinutes)}`}
+                className="admin-modal"
+                onClose={() => setSelectedId(null)}
+              >
 
                   <div className="stats">
                     <div className="stat-card">
@@ -213,8 +197,7 @@ export default function AdminView() {
                       </table>
                     </div>
                   )}
-                </div>
-              </div>
+              </Dialog>
             )}
           </>
         ))}
