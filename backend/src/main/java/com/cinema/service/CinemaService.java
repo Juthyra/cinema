@@ -82,15 +82,15 @@ public class CinemaService {
     @Transactional(readOnly = true)
     public SeatMapDto getSeatMap(Long showtimeId) {
         Showtime showtime = findShowtime(showtimeId);
-        Map<String, String> takenNames = new HashMap<>();
+        // Public endpoint: only whether a seat is taken, never who took it.
+        Set<String> takenSeats = new HashSet<>();
         for (SeatReservation r : reservations.findByShowtimeId(showtimeId)) {
-            takenNames.put(r.getSeatRow() + r.getSeatNumber(), r.getCustomerName());
+            takenSeats.add(r.getSeatRow() + r.getSeatNumber());
         }
         HallLayouts.Layout layout = HallLayouts.of(showtime.getHallType());
         List<SeatInfo> seats = new ArrayList<>();
         for (HallLayouts.SeatSpec spec : layout.seats()) {
-            String name = takenNames.get(spec.key());
-            seats.add(new SeatInfo(spec.row(), spec.number(), name != null, name,
+            seats.add(new SeatInfo(spec.row(), spec.number(), takenSeats.contains(spec.key()),
                     spec.kind(), spec.section(), spec.gapBefore(), TicketPrices.of(spec.kind())));
         }
         HallType type = showtime.getHallType();
