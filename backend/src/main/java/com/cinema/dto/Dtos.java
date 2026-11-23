@@ -17,7 +17,7 @@ public final class Dtos {
     }
 
     /** kind: STANDARD, FAMILY, COUPLE, RECLINER, SINGLE or ACCESSIBLE. gapBefore = aisle to its left. */
-    public record SeatInfo(String row, int number, boolean taken, String customerName,
+    public record SeatInfo(String row, int number, boolean taken,
                            String kind, String section, boolean gapBefore, int priceSen) {
     }
 

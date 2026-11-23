@@ -9,7 +9,12 @@
   --free: #232b3d;
   --free-hover: #2f3a52;
   --taken: #3a1f24;
+  --taken-stripes: repeating-linear-gradient(135deg, #3a1f24 0 5px, #4a2830 5px 8px);
 }
+
+/* Visible keyboard focus on every control */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.modal:focus { outline: none; } /* the dialog box itself only holds focus on open */
 
 * { box-sizing: border-box; }
 
@@ -154,7 +159,7 @@ body {
 
 .screen {
   text-align: center;
-  color: #6f7a95;
+  color: var(--muted);
   letter-spacing: 8px;
   font-size: 0.7rem;
   border-top: 2px solid #39456a;
@@ -167,7 +172,7 @@ body {
 .lg::before { content: ''; width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
 .lg.free::before { background: var(--free); border: 1px solid #39456a; }
 .lg.selected::before { background: var(--accent); }
-.lg.taken::before { background: var(--taken); border: 1px solid #5c2b31; }
+.lg.taken::before { background: var(--taken-stripes); border: 1px solid #5c2b31; }
 
 .seatrow { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; justify-content: center; }
 .rowlabel { width: 18px; color: var(--muted); font-size: 0.75rem; text-align: center; }
@@ -185,10 +190,14 @@ body {
 }
 .seat.free:hover { background: var(--free-hover); transform: translateY(-1px); }
 .seat.selected { background: var(--accent); border-color: var(--accent); color: #1a1405; font-weight: 700; }
-.seat.taken { background: var(--taken); border-color: #5c2b31; color: #8a5a60; cursor: not-allowed; }
+/* Taken: stripes as a second cue besides colour; number stays readable (6.7:1) */
+.seat.taken { background: var(--taken-stripes); border-color: #5c2b31; color: #d4a0a6; cursor: not-allowed; }
 
 .form { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
-.form-row { display: flex; gap: 10px; }
+.form-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.field { flex: 1 1 200px; display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 0.8rem; color: var(--muted); }
+.form input::placeholder { color: var(--muted); opacity: 0.8; }
 .form input {
   flex: 1;
   background: var(--panel-2);
@@ -213,7 +222,13 @@ body {
   font-size: 0.95rem;
   cursor: pointer;
 }
-.reserve-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+/* Disabled: explicit colours instead of opacity so the label stays readable (5.3:1) */
+.reserve-btn:disabled {
+  background: var(--panel-2);
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1px #2c3650;
+  cursor: not-allowed;
+}
 
 .notice { border-radius: 10px; padding: 10px 14px; font-size: 0.85rem; margin-top: 14px; }
 .notice.ok { background: #12261c; border: 1px solid #1f5c3b; color: #7fe0a8; }
@@ -364,5 +379,28 @@ table.bookings .empty { color: var(--muted); text-align: center; padding: 24px; 
 .seat.kind-accessible.free:hover { background: #1a4558; }
 
 /* Taken / selected always win over the kind tint */
-.seat.taken { background: var(--taken) !important; border-color: #5c2b31 !important; }
+.seat.taken { background: var(--taken-stripes) !important; border-color: #5c2b31 !important; }
 .seat.selected { background: var(--accent) !important; border-color: var(--accent) !important; }
+
+/* ---- Seat map: never clipped. Rows centre when they fit and scroll sideways when they don't. ---- */
+.seatmap { overflow-x: auto; padding-bottom: 4px; }
+.seatmap > div { width: max-content; min-width: 100%; }
+.hall-modern .seatmap { padding-top: 28px; } /* room for the curved rows' raised outer seats */
+
+/* ---- Phones ---- */
+@media (max-width: 480px) {
+  .overlay { padding: 8px; }
+  .modal { padding: 16px 12px; border-radius: 12px; }
+  .seatrow { gap: 4px; margin-bottom: 6px; }
+  .rowlabel { width: 12px; font-size: 0.7rem; }
+  .seatrow > .gap-before { margin-left: 10px; }
+  .seat { width: 25px; height: 26px; font-size: 0.65rem; padding: 0; border-radius: 6px 6px 3px 3px; }
+  .seat.kind-family { width: 27px; height: 28px; }
+  .seat.kind-couple { width: 44px; height: 28px; }
+  .seat.kind-recliner { width: 32px; height: 30px; }
+  .seat.kind-accessible { width: 32px; height: 28px; font-size: 0.85rem; }
+  .hall-family .seatrow { margin-bottom: 8px; }
+  .hall-modern .seatrow { margin-bottom: 10px; }
+  .actions { flex-wrap: wrap; }
+  .reserve-btn { width: 100%; }
+}

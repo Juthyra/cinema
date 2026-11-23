@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { getSeatMap, reserveSeats } from '../api';
 import type { SeatInfo, SeatKind, SeatMap, ShowtimeInfo } from '../types';
 import { fmtMoney } from '../lib/format';
+import Dialog from './Dialog';
 
 interface Props {
   movieTitle: string;
@@ -33,7 +34,6 @@ function fmtWhen(iso: string): string {
 }
 
 function seatLabel(seat: SeatInfo): string {
-  if (seat.taken && seat.customerName) return seat.customerName.slice(0, 1);
   if (seat.kind === 'ACCESSIBLE') return '♿';
   if (seat.kind === 'COUPLE') return `♥${seat.number}`;
   return String(seat.number);
@@ -46,6 +46,8 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [booking, setBooking] = useState(false);
+  const nameId = useId();
+  const emailId = useId();
   const [confirmed, setConfirmed] = useState<string | null>(null);
   const [bookError, setBookError] = useState<string | null>(null);
 
@@ -126,21 +128,18 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
   const hallClass = map ? `hall-${map.hallType.toLowerCase()}` : '';
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className={`modal ${hallClass}`} onClick={(e) => e.stopPropagation()}>
-        <div className="modal-head">
-          <div>
-            <h2>{movieTitle}</h2>
-            <p className="sub">
-              {fmtWhen(showtime.startsAt)} · {showtime.hall} · {showtime.hallTypeLabel}
-            </p>
-          </div>
-          <button className="close" onClick={onClose} aria-label="Close">
-            ×
-          </button>
-        </div>
+    <Dialog
+      title={movieTitle}
+      subtitle={`${fmtWhen(showtime.startsAt)} · ${showtime.hall} · ${showtime.hallTypeLabel}`}
+      className={hallClass}
+      onClose={onClose}
+    >
 
-        {loadError && <div className="notice err">{loadError}</div>}
+        {loadError && (
+          <div className="notice err" role="alert">
+            {loadError}
+          </div>
+        )}
 
         {map && (
           <>
@@ -153,12 +152,15 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
                 </span>
               ))}
             </p>
-            <div className="screen">SCREEN</div>
+            <div className="screen" aria-hidden="true">
+              SCREEN
+            </div>
             <div className="legend">
               <span className="lg free">Available</span>
               <span className="lg selected">Selected</span>
               <span className="lg taken">Taken</span>
             </div>
+            <div className="seatmap" role="group" aria-label="Seats, screen at the top">
             {rows.map(({ row, seats }, ri) => {
               const prevSection = ri > 0 ? rows[ri - 1].seats[0]?.section : null;
               const section = seats[0]?.section;
@@ -188,16 +190,18 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
                           : seat.kind === 'ACCESSIBLE'
                             ? ' (wheelchair space)'
                             : '';
+                      const description = seat.taken
+                        ? `${key}${hint}, taken`
+                        : `${key}${hint}, ${KIND_LABEL[seat.kind]}, ${fmtMoney(seat.priceSen)}`;
                       return (
                         <span key={key} className={seat.gapBefore ? 'gap-before' : undefined}>
                           <button
+                            type="button"
                             className={`seat kind-${seat.kind.toLowerCase()} ${state}`}
                             style={style}
-                            title={
-                              seat.taken && seat.customerName
-                                ? `Taken by ${seat.customerName}`
-                                : `${key}${hint} · ${fmtMoney(seat.priceSen)}`
-                            }
+                            title={description}
+                            aria-label={description}
+                            aria-pressed={seat.taken ? undefined : isSel}
                             disabled={seat.taken}
                             onClick={() => toggle(key)}
                           >
@@ -211,23 +215,35 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
                 </div>
               );
             })}
+            </div>
 
             <div className="form">
               <div className="form-row">
-                <input
-                  placeholder="Your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <input
-                  placeholder="you@example.com"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+                <div className="field">
+                  <label htmlFor={nameId}>Your name</label>
+                  <input
+                    id={nameId}
+                    autoComplete="name"
+                    placeholder="e.g. Aisha Rahman"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor={emailId}>Email</label>
+                  <input
+                    id={emailId}
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
               </div>
               <div className="actions">
                 <button
+                  type="button"
                   className="reserve-btn"
                   disabled={
                     selected.length === 0 ||
@@ -243,7 +259,7 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
                       ? `Book ${selected.length} seat${selected.length > 1 ? 's' : ''} · ${fmtMoney(totalSen)}`
                       : `Pick up to ${maxSeats} seats`}
                 </button>
-                <span className="hint">
+                <span className="hint" aria-live="polite">
                   {selected.length === maxSeats
                     ? `Max ${maxSeats} seats reached — deselect one to change.`
                     : selected.length > 0
@@ -253,11 +269,18 @@ export default function SeatMapView({ movieTitle, showtime, onClose }: Props) {
               </div>
             </div>
 
-            {confirmed && <div className="notice ok">{confirmed}</div>}
-            {bookError && <div className="notice err">{bookError}</div>}
+            {confirmed && (
+              <div className="notice ok" role="status">
+                {confirmed}
+              </div>
+            )}
+            {bookError && (
+              <div className="notice err" role="alert">
+                {bookError}
+              </div>
+            )}
           </>
         )}
-      </div>
-    </div>
+    </Dialog>
   );
 }
